@@ -13,5 +13,7 @@ type Pisig struct {
 	EventPoolQueueSize   int
 	EventPoolWaitingTime int
 
-	mServerMux *http.ServeMux
+	mEventPool    *EventPool
+	mServerMux    *http.ServeMux
+	mPisigContext *PisigContext
 }
