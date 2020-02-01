@@ -30,5 +30,3 @@ func (dph *DefaultPisigHook) AppNameLong() string {
 func (dph *DefaultPisigHook) SetupCMD(pisigCMD *PisigCMD) {
 
 }
-
-var Hook = &DefaultPisigHook{}

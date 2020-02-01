@@ -10,6 +10,8 @@ import (
 )
 
 type PisigCMD struct {
+	Hook PisigHook
+
 	mRootCMD      *cobra.Command
 	mRunSubCMD    *cobra.Command
 	mCreateSubCMD *cobra.Command
@@ -29,9 +31,9 @@ func (pc *PisigCMD) AddCreateCommand(cmds ...*cobra.Command) {
 
 func (pc *PisigCMD) Setup() {
 	pc.mRootCMD = &cobra.Command{
-		Use:   Hook.AppName(),
-		Short: Hook.AppNameLong(),
-		Long:  Hook.AppDescription(),
+		Use:   pc.Hook.AppName(),
+		Short: pc.Hook.AppNameLong(),
+		Long:  pc.Hook.AppDescription(),
 		Run: func(cmd *cobra.Command, args []string) {
 			fmt.Println(cmd.UsageString())
 		},
@@ -62,7 +64,7 @@ func (pc *PisigCMD) Setup() {
 	pc.mRootCMD.AddCommand(getPisigSubCommand())
 
 	// SETUP CUSTOM CMDS FROM HOOK
-	Hook.SetupCMD(pc)
+	pc.Hook.SetupCMD(pc)
 
 	pFlag.CommandLine.AddGoFlagSet(goFlag.CommandLine)
 }
