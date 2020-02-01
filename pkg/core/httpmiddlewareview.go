@@ -6,6 +6,6 @@ import (
 
 type MiddlewareHandlerFunc func(http.ResponseWriter, *http.Request) bool
 
-type HTTPMiddleware interface {
+type HTTPMiddlewareView interface {
 	ProcessAllowNext(pisig *Pisig) MiddlewareHandlerFunc
 }
