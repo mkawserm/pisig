@@ -28,16 +28,24 @@ func (p *Pisig) PisigSettings() *types.PisigSettings {
 }
 
 func (p *Pisig) Run() {
-	glog.V(3).Infof("Server starting...\n")
+	if glog.V(1) {
+		glog.Infof("Server starting...\n")
+	}
+
 	p.mEventPool.Setup()
 	go p.mEventPool.RunMainEventLoop()
 	p.runServer()
-	glog.V(3).Infof("Server exited gracefully.\n")
+
+	if glog.V(1) {
+		glog.Infof("Server exited gracefully.\n")
+	}
 }
 
 func (p *Pisig) runServer() {
 	if p.mPisigSettings.EnableTLS {
-		glog.V(3).Infoln("Server is listening at: https://" + p.mPisigSettings.Host + ":" + p.mPisigSettings.Port)
+		if glog.V(1) {
+			glog.Infoln("Server is listening at: https://" + p.mPisigSettings.Host + ":" + p.mPisigSettings.Port)
+		}
 		err := http.ListenAndServeTLS(p.mPisigSettings.Host+":"+p.mPisigSettings.Port,
 			p.mPisigSettings.CertFile,
 			p.mPisigSettings.KeyFile, p.mServerMux)
@@ -45,7 +53,9 @@ func (p *Pisig) runServer() {
 			glog.Errorln("Server error: ", err)
 		}
 	} else {
-		glog.V(3).Infoln("Server is listening at: http://" + p.mPisigSettings.Host + ":" + p.mPisigSettings.Port)
+		if glog.V(1) {
+			glog.Infoln("Server is listening at: http://" + p.mPisigSettings.Host + ":" + p.mPisigSettings.Port)
+		}
 		err := http.ListenAndServe(p.mPisigSettings.Host+":"+p.mPisigSettings.Port, p.mServerMux)
 		if err != nil {
 			glog.Errorln("Server error: ", err)
