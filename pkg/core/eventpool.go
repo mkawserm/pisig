@@ -14,15 +14,15 @@ type EventPoolProcessMessageHook func(conn net.Conn, msg []byte, opCode byte) er
 type EventPoolRemoveConnectionHook func(conn net.Conn) error
 
 type EventPool struct {
-	fd             int
-	connectionMap  map[int]net.Conn
-	eventQueueSize int
-	waitingTime    int
+	mFd             int
+	mConnectionMap  map[int]net.Conn
+	mEventQueueSize int
+	mWaitingTime    int
 
-	processMessageHook   EventPoolProcessMessageHook
-	removeConnectionHook EventPoolRemoveConnectionHook
+	mProcessMessageHook   EventPoolProcessMessageHook
+	mRemoveConnectionHook EventPoolRemoveConnectionHook
 
-	lock *sync.RWMutex
+	mRWLock *sync.RWMutex
 }
 
 func NewEventPool(
@@ -38,13 +38,13 @@ func NewEventPool(
 	}
 
 	return &EventPool{
-		fd:                   fd,
-		lock:                 &sync.RWMutex{},
-		connectionMap:        make(map[int]net.Conn),
-		eventQueueSize:       eventQueueSize,
-		waitingTime:          waitingTime,
-		processMessageHook:   processMessageHook,
-		removeConnectionHook: removeConnectionHook,
+		mFd:                   fd,
+		mRWLock:               &sync.RWMutex{},
+		mConnectionMap:        make(map[int]net.Conn),
+		mEventQueueSize:       eventQueueSize,
+		mWaitingTime:          waitingTime,
+		mProcessMessageHook:   processMessageHook,
+		mRemoveConnectionHook: removeConnectionHook,
 	}, nil
 }
 
@@ -67,10 +67,10 @@ func (e *EventPool) Setup() {
 }
 
 func (e *EventPool) GetConnection(connectionId int) (net.Conn, bool) {
-	e.lock.RLock()
-	defer e.lock.RUnlock()
+	e.mRWLock.RLock()
+	defer e.mRWLock.RUnlock()
 
-	v, ok := e.connectionMap[connectionId]
+	v, ok := e.mConnectionMap[connectionId]
 	return v, ok
 }
 
@@ -78,7 +78,7 @@ func (e *EventPool) AddConnection(conn net.Conn) error {
 	// Extract file descriptor associated with the connection
 	fd := WebsocketFileDescriptor(conn)
 
-	err := unix.EpollCtl(e.fd,
+	err := unix.EpollCtl(e.mFd,
 		syscall.EPOLL_CTL_ADD,
 		fd,
 		&unix.EpollEvent{
@@ -90,12 +90,12 @@ func (e *EventPool) AddConnection(conn net.Conn) error {
 		return err
 	}
 
-	e.lock.Lock()
-	defer e.lock.Unlock()
+	e.mRWLock.Lock()
+	defer e.mRWLock.Unlock()
 
-	e.connectionMap[fd] = conn
-	if len(e.connectionMap)%100 == 0 {
-		glog.V(1).Infof("Total number of connections: %v\n", len(e.connectionMap))
+	e.mConnectionMap[fd] = conn
+	if len(e.mConnectionMap)%100 == 0 {
+		glog.V(1).Infof("Total number of connections: %v\n", len(e.mConnectionMap))
 	}
 
 	return nil
@@ -104,7 +104,7 @@ func (e *EventPool) AddConnection(conn net.Conn) error {
 func (e *EventPool) RemoveConnection(conn net.Conn) error {
 	fd := WebsocketFileDescriptor(conn)
 
-	err := unix.EpollCtl(e.fd,
+	err := unix.EpollCtl(e.mFd,
 		syscall.EPOLL_CTL_DEL,
 		fd, nil)
 
@@ -112,50 +112,50 @@ func (e *EventPool) RemoveConnection(conn net.Conn) error {
 		return err
 	}
 
-	e.lock.Lock()
-	defer e.lock.Unlock()
+	e.mRWLock.Lock()
+	defer e.mRWLock.Unlock()
 
-	delete(e.connectionMap, fd)
+	delete(e.mConnectionMap, fd)
 
-	if len(e.connectionMap)%100 == 0 {
-		glog.V(1).Infof("Total number of connections: %v\n", len(e.connectionMap))
+	if len(e.mConnectionMap)%100 == 0 {
+		glog.V(1).Infof("Total number of connections: %v\n", len(e.mConnectionMap))
 	}
 
 	return nil
 }
 
 func (e *EventPool) Wait() ([]net.Conn, error) {
-	events := make([]unix.EpollEvent, e.eventQueueSize)
-	n, err := unix.EpollWait(e.fd, events, e.waitingTime)
+	events := make([]unix.EpollEvent, e.mEventQueueSize)
+	n, err := unix.EpollWait(e.mFd, events, e.mWaitingTime)
 
 	if err != nil {
 		return nil, err
 	}
 
-	e.lock.RLock()
-	defer e.lock.RUnlock()
+	e.mRWLock.RLock()
+	defer e.mRWLock.RUnlock()
 
 	var connections []net.Conn
 	for i := 0; i < n; i++ {
-		conn := e.connectionMap[int(events[i].Fd)]
+		conn := e.mConnectionMap[int(events[i].Fd)]
 		connections = append(connections, conn)
 	}
 	return connections, nil
 }
 
 func (e *EventPool) TotalActiveConnections() int {
-	e.lock.RLock()
-	defer e.lock.RUnlock()
+	e.mRWLock.RLock()
+	defer e.mRWLock.RUnlock()
 
-	return len(e.connectionMap)
+	return len(e.mConnectionMap)
 }
 
 func (e *EventPool) GetConnectionIdSlice() []int {
-	e.lock.RLock()
-	defer e.lock.RUnlock()
+	e.mRWLock.RLock()
+	defer e.mRWLock.RUnlock()
 	var idList []int
 
-	for i := range e.connectionMap {
+	for i := range e.mConnectionMap {
 		idList = append(idList, i)
 	}
 
@@ -163,11 +163,11 @@ func (e *EventPool) GetConnectionIdSlice() []int {
 }
 
 func (e *EventPool) GetConnectionSlice() []net.Conn {
-	e.lock.RLock()
-	defer e.lock.RUnlock()
+	e.mRWLock.RLock()
+	defer e.mRWLock.RUnlock()
 	var connections []net.Conn
 
-	for _, con := range e.connectionMap {
+	for _, con := range e.mConnectionMap {
 		connections = append(connections, con)
 	}
 
@@ -175,10 +175,10 @@ func (e *EventPool) GetConnectionSlice() []net.Conn {
 }
 
 func (e *EventPool) GetConnectionMap() map[int]net.Conn {
-	e.lock.RLock()
-	defer e.lock.RUnlock()
+	e.mRWLock.RLock()
+	defer e.mRWLock.RUnlock()
 
-	return e.connectionMap
+	return e.mConnectionMap
 }
 
 func (e *EventPool) RunMainEventLoop() {
@@ -198,8 +198,8 @@ func (e *EventPool) RunMainEventLoop() {
 			msg, opCode, err := wsutil.ReadClientData(conn)
 
 			if err != nil {
-				if e.removeConnectionHook != nil {
-					if err := e.removeConnectionHook(conn); err != nil {
+				if e.mRemoveConnectionHook != nil {
+					if err := e.mRemoveConnectionHook(conn); err != nil {
 						glog.Errorf("Failed to remove connection, error: %v\n", e)
 					}
 				}
@@ -207,8 +207,8 @@ func (e *EventPool) RunMainEventLoop() {
 				continue
 			}
 
-			if e.processMessageHook != nil {
-				if err := e.processMessageHook(conn, msg, byte(opCode)); err != nil {
+			if e.mProcessMessageHook != nil {
+				if err := e.mProcessMessageHook(conn, msg, byte(opCode)); err != nil {
 					glog.Errorf("Failed to process message, error: %v\n", e)
 				}
 			}
@@ -218,7 +218,7 @@ func (e *EventPool) RunMainEventLoop() {
 
 func WebsocketFileDescriptor(conn net.Conn) int {
 	tcpConn := reflect.Indirect(reflect.ValueOf(conn)).FieldByName("conn")
-	fdVal := tcpConn.FieldByName("fd")
+	fdVal := tcpConn.FieldByName("mFd")
 	pfdVal := reflect.Indirect(fdVal).FieldByName("pfd")
 	return int(pfdVal.FieldByName("Sysfd").Int())
 }
