@@ -3,15 +3,15 @@ package core
 import "net/http"
 
 type Pisig struct {
-	Host string
-	Port string
+	mHost string
+	mPort string
 
-	EnableTLS bool   //read only
-	CertFile  string //read only
-	KeyFile   string //read only
+	mEnableTLS bool
+	mCertFile  string
+	mKeyFile   string
 
-	EventPoolQueueSize   int
-	EventPoolWaitingTime int
+	mEventPoolQueueSize   int
+	mEventPoolWaitingTime int
 
 	mEventPool    *EventPool
 	mServerMux    *http.ServeMux
