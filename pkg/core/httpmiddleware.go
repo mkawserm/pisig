@@ -4,6 +4,8 @@ import (
 	"net/http"
 )
 
+type MiddlewareHandlerFunc func(http.ResponseWriter, *http.Request) bool
+
 type HTTPMiddleware interface {
-	ProcessAllowNext(pisigContext *PisigContext, w http.ResponseWriter, r *http.Request) bool
+	ProcessAllowNext(pisig *Pisig) MiddlewareHandlerFunc
 }

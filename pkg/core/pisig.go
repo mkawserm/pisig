@@ -17,3 +17,7 @@ type Pisig struct {
 	mServerMux    *http.ServeMux
 	mPisigContext *PisigContext
 }
+
+func (p *Pisig) PisigContext() *PisigContext {
+	return p.mPisigContext
+}

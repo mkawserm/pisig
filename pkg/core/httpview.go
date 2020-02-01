@@ -5,5 +5,5 @@ import (
 )
 
 type HTTPView interface {
-	Process(pisigContext *PisigContext) http.HandlerFunc
+	Process(pisig *Pisig) http.HandlerFunc
 }
