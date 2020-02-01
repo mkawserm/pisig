@@ -10,19 +10,27 @@ import (
 	"syscall"
 )
 
+type EventPoolProcessMessageHook func(conn net.Conn, msg []byte, opCode byte) error
+type EventPoolRemoveConnectionHook func(conn net.Conn) error
+
 type EventPool struct {
 	fd             int
 	connectionMap  map[int]net.Conn
 	eventQueueSize int
 	waitingTime    int
 
-	processMessageHook   func(conn net.Conn, msg []byte, opCode byte) error
-	removeConnectionHook func(conn net.Conn) error
+	processMessageHook   EventPoolProcessMessageHook
+	removeConnectionHook EventPoolRemoveConnectionHook
 
 	lock *sync.RWMutex
 }
 
-func MakeEventPool() (*EventPool, error) {
+func NewEventPool(
+	eventQueueSize int,
+	waitingTime int,
+	processMessageHook EventPoolProcessMessageHook,
+	removeConnectionHook EventPoolRemoveConnectionHook,
+) (*EventPool, error) {
 	fd, err := unix.EpollCreate1(0)
 
 	if err != nil {
@@ -30,31 +38,19 @@ func MakeEventPool() (*EventPool, error) {
 	}
 
 	return &EventPool{
-		fd:             fd,
-		lock:           &sync.RWMutex{},
-		connectionMap:  make(map[int]net.Conn),
-		eventQueueSize: 100,
-		waitingTime:    100,
+		fd:                   fd,
+		lock:                 &sync.RWMutex{},
+		connectionMap:        make(map[int]net.Conn),
+		eventQueueSize:       eventQueueSize,
+		waitingTime:          waitingTime,
+		processMessageHook:   processMessageHook,
+		removeConnectionHook: removeConnectionHook,
 	}, nil
-
 }
 
-func MakeCustomEventPool(eventQueueSize int, waitingTime int) (*EventPool, error) {
-	fd, err := unix.EpollCreate1(0)
-
-	if err != nil {
-		return nil, err
-	}
-
-	return &EventPool{
-		fd:             fd,
-		lock:           &sync.RWMutex{},
-		connectionMap:  make(map[int]net.Conn),
-		eventQueueSize: eventQueueSize,
-		waitingTime:    waitingTime,
-	}, nil
-
-}
+//func NewDefaultEventPool() (*EventPool, error) {
+//	return NewEventPool(100,100)
+//}
 
 func (e *EventPool) Setup() {
 	var rLimit syscall.Rlimit
