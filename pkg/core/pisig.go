@@ -1,6 +1,7 @@
 package core
 
 import (
+	"github.com/golang/glog"
 	"github.com/mkawserm/pisig/pkg/types"
 	"net/http"
 )
@@ -24,6 +25,32 @@ func (p *Pisig) PisigContext() *types.PisigContext {
 
 func (p *Pisig) PisigSettings() *types.PisigSettings {
 	return p.mPisigSettings
+}
+
+func (p *Pisig) Run() {
+	glog.V(3).Infof("Server starting...\n")
+	p.mEventPool.Setup()
+	go p.mEventPool.RunMainEventLoop()
+	p.runServer()
+	glog.V(3).Infof("Server exited gracefully.\n")
+}
+
+func (p *Pisig) runServer() {
+	if p.mPisigSettings.EnableTLS {
+		glog.V(3).Infoln("Server is listening at: https://" + p.mPisigSettings.Host + ":" + p.mPisigSettings.Port)
+		err := http.ListenAndServeTLS(p.mPisigSettings.Host+":"+p.mPisigSettings.Port,
+			p.mPisigSettings.CertFile,
+			p.mPisigSettings.KeyFile, p.mServerMux)
+		if err != nil {
+			glog.Errorln("Server error: ", err)
+		}
+	} else {
+		glog.V(3).Infoln("Server is listening at: http://" + p.mPisigSettings.Host + ":" + p.mPisigSettings.Port)
+		err := http.ListenAndServe(p.mPisigSettings.Host+":"+p.mPisigSettings.Port, p.mServerMux)
+		if err != nil {
+			glog.Errorln("Server error: ", err)
+		}
+	}
 }
 
 func NewPisig(corsOptions *types.CORSOptions, pisigSettings *types.PisigSettings) *Pisig {
