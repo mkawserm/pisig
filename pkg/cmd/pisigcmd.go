@@ -45,7 +45,7 @@ func (pc *PisigCMD) Setup() {
 
 	pc.mRunSubCMD = &cobra.Command{
 		Use:   "run",
-		Short: "Run any run command",
+		Short: "run any run command",
 		Run: func(cmd *cobra.Command, args []string) {
 			fmt.Println(cmd.Usage())
 		},
@@ -53,7 +53,7 @@ func (pc *PisigCMD) Setup() {
 
 	pc.mCreateSubCMD = &cobra.Command{
 		Use:   "create",
-		Short: "Run any create command",
+		Short: "run any create command",
 		Run: func(cmd *cobra.Command, args []string) {
 			fmt.Println(cmd.Usage())
 		},
@@ -79,7 +79,7 @@ func (pc *PisigCMD) Execute() {
 func getPisigSubCommand() *cobra.Command {
 	pisigSubCommand := &cobra.Command{
 		Use:   core.ConstAppName,
-		Short: "Pisig core",
+		Short: "pisig core",
 		Long:  core.ConstAppDescription,
 		Run: func(cmd *cobra.Command, args []string) {
 			fmt.Println(cmd.UsageString())
@@ -88,7 +88,7 @@ func getPisigSubCommand() *cobra.Command {
 
 	pisigVersionCommand := &cobra.Command{
 		Use:   "version",
-		Short: "Print the version",
+		Short: "print the version",
 		Run: func(cmd *cobra.Command, args []string) {
 			fmt.Println(core.ConstAppVersion)
 		},
@@ -96,7 +96,7 @@ func getPisigSubCommand() *cobra.Command {
 
 	pisigAuthorsCommand := &cobra.Command{
 		Use:   "authors",
-		Short: "Print the authors",
+		Short: "print the authors",
 		Run: func(cmd *cobra.Command, args []string) {
 			fmt.Println(core.ConstAppAuthors)
 		},
