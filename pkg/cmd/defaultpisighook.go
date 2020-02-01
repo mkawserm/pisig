@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"github.com/mkawserm/pisig/pkg/core"
+	"github.com/spf13/cobra"
 )
 
 type DefaultPisigHook struct {
@@ -28,5 +29,13 @@ func (dph *DefaultPisigHook) AppNameLong() string {
 }
 
 func (dph *DefaultPisigHook) SetupCMD(pisigCMD *PisigCMD) {
-
+	serverCMD := &cobra.Command{
+		Use:   "server",
+		Short: "Run pisig server",
+		Run: func(cmd *cobra.Command, args []string) {
+			pisig := core.NewDefaultPisig()
+			pisig.Run()
+		},
+	}
+	pisigCMD.AddRunCommand(serverCMD)
 }
