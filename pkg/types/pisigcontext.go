@@ -1,9 +1,9 @@
 package types
 
 type PisigContext struct {
+	PisigStore    *PisigStore
 	CORSOptions   *CORSOptions
 	PisigSettings *PisigSettings
-	PisigStore    *PisigStore
 }
 
 func (pc *PisigContext) GetCORSOptions() *CORSOptions {
