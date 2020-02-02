@@ -2,14 +2,16 @@ package core
 
 import (
 	"github.com/golang/glog"
+	"github.com/mkawserm/pisig/pkg/conf"
 	"github.com/mkawserm/pisig/pkg/variant"
 	"net/http"
 )
 
 type Pisig struct {
-	mServerMux    *http.ServeMux
-	mEventPool    *EventPool
-	mPisigContext *variant.PisigContext
+	mServerMux     *http.ServeMux
+	mEventPool     *EventPool
+	mPisigContext  *variant.PisigContext
+	mPisigResponse conf.PisigResponse
 
 	mMiddlewareViewList []HTTPMiddlewareView
 }
@@ -20,6 +22,10 @@ func (p *Pisig) CORSOptions() *variant.CORSOptions {
 
 func (p *Pisig) PisigContext() *variant.PisigContext {
 	return p.mPisigContext
+}
+
+func (p *Pisig) PisigResponse() conf.PisigResponse {
+	return p.mPisigResponse
 }
 
 func (p *Pisig) PisigSettings() *variant.PisigSettings {
@@ -87,8 +93,12 @@ func NewPisig(args ...interface{}) *Pisig {
 	var pisigSettings *variant.PisigSettings
 	var corsOptions *variant.CORSOptions
 	var pisigContext *variant.PisigContext
+	var pisigResponse conf.PisigResponse
 
 	for _, val := range args {
+		if glog.V(3) {
+			glog.Infof("Pisig arg type: %T\n", val)
+		}
 		switch val.(type) {
 
 		case *variant.PisigContext:
@@ -97,13 +107,16 @@ func NewPisig(args ...interface{}) *Pisig {
 			pisigSettings = val.(*variant.PisigSettings)
 		case *variant.CORSOptions:
 			corsOptions = val.(*variant.CORSOptions)
+		case conf.PisigResponse:
+			pisigResponse = val.(conf.PisigResponse)
 		default:
 			break
 		}
 	}
 
-	if pisigContext != nil {
+	if pisigContext != nil && pisigResponse != nil {
 		pisig.mPisigContext = pisigContext
+		pisig.mPisigResponse = pisigResponse
 		eventPool, err := NewEventPool(
 			pisig.PisigSettings().EventPoolQueueSize,
 			pisig.PisigSettings().EventPoolWaitingTime,
@@ -119,7 +132,7 @@ func NewPisig(args ...interface{}) *Pisig {
 		return pisig
 	}
 
-	if pisigSettings != nil && corsOptions != nil {
+	if pisigSettings != nil && corsOptions != nil && pisigResponse != nil {
 
 		eventPool, err := NewEventPool(
 			pisigSettings.EventPoolQueueSize,
@@ -136,6 +149,7 @@ func NewPisig(args ...interface{}) *Pisig {
 		pisigContext.CORSOptions = corsOptions
 		pisigContext.PisigSettings = pisigSettings
 
+		pisig.mPisigResponse = pisigResponse
 		pisig.mEventPool = eventPool
 		pisig.mPisigContext = pisigContext
 		return pisig
@@ -145,20 +159,8 @@ func NewPisig(args ...interface{}) *Pisig {
 	return nil
 }
 
-func NewPisigSimple(corsOptions *variant.CORSOptions, pisigSettings *variant.PisigSettings) *Pisig {
-	return NewPisig(corsOptions, pisigSettings)
-}
-
-func NewDefaultPisig() *Pisig {
-	pisig := NewPisigSimple(
-		&variant.CORSOptions{
-			AllowAllOrigins:  true,
-			AllowCredentials: true,
-			AllowMethods:     []string{"GET", "POST", "OPTIONS", "DELETE"},
-			AllowHeaders:     []string{"Origin", "Accept", "Content-Type", "Authorization"},
-		},
-		variant.NewDefaultPisigSettings(),
-	)
-
-	return pisig
+func NewPisigSimple(corsOptions *variant.CORSOptions,
+	pisigSettings *variant.PisigSettings,
+	pisigResponse conf.PisigResponse) *Pisig {
+	return NewPisig(corsOptions, pisigSettings, pisigResponse)
 }

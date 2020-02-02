@@ -165,7 +165,7 @@ func (o *CORSOptions) IsOriginAllowed(origin string) (allowed bool) {
 }
 
 // CROSCheckAllowNext enables CORS for requests those match the provided options.
-func (o *CORSOptions) CROSCheckAllowNext(res http.ResponseWriter, req *http.Request) bool {
+func (o *CORSOptions) CROSCheckAllowNext(writer http.ResponseWriter, request *http.Request) bool {
 
 	// Allow default headers if nothing is specified.
 	if len(o.AllowHeaders) == 0 {
@@ -180,28 +180,28 @@ func (o *CORSOptions) CROSCheckAllowNext(res http.ResponseWriter, req *http.Requ
 	}
 
 	var (
-		origin           = req.Header.Get(headerOrigin)
-		requestedMethod  = req.Header.Get(headerRequestMethod)
-		requestedHeaders = req.Header.Get(headerRequestHeaders)
+		origin           = request.Header.Get(headerOrigin)
+		requestedMethod  = request.Header.Get(headerRequestMethod)
+		requestedHeaders = request.Header.Get(headerRequestHeaders)
 		// additional headers to be added
 		// to the response.
 		headers map[string]string
 	)
 
-	if req.Method == "OPTIONS" &&
+	if request.Method == "OPTIONS" &&
 		(requestedMethod != "" || requestedHeaders != "") {
 		// TODO: if preflight, respond with exact headers if allowed
 		headers = o.PreflightHeader(origin, requestedMethod, requestedHeaders)
 		for key, value := range headers {
-			res.Header().Set(key, value)
+			writer.Header().Set(key, value)
 		}
-		res.WriteHeader(http.StatusOK)
+		writer.WriteHeader(http.StatusOK)
 		return false
 	}
 
 	headers = o.Header(origin)
 	for key, value := range headers {
-		res.Header().Set(key, value)
+		writer.Header().Set(key, value)
 	}
 
 	return true

@@ -1,5 +1,7 @@
 package cmd
 
+import "github.com/mkawserm/pisig/pkg/conf"
+
 type PisigHook interface {
 	AppName() string
 	AppNameLong() string
@@ -7,5 +9,5 @@ type PisigHook interface {
 	AppAuthors() string
 	AppDescription() string
 
-	SetupCMD(pisigCMD *PisigCMD)
+	SetupCMD(pisigCMD *PisigCMD, pisigResponse conf.PisigResponse)
 }
