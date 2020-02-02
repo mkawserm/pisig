@@ -10,6 +10,8 @@ type Pisig struct {
 	mServerMux    *http.ServeMux
 	mEventPool    *EventPool
 	mPisigContext *types.PisigContext
+
+	mMiddlewareViewList []HTTPMiddlewareView
 }
 
 func (p *Pisig) CORSOptions() *types.CORSOptions {
@@ -22,6 +24,18 @@ func (p *Pisig) PisigContext() *types.PisigContext {
 
 func (p *Pisig) PisigSettings() *types.PisigSettings {
 	return p.mPisigContext.GetPisigSettings()
+}
+
+func (p *Pisig) AddView(urlPattern string, view HTTPView) {
+	p.mServerMux.HandleFunc(urlPattern, view.Process(p))
+}
+
+func (p *Pisig) AddMiddlewareView(middlewareView HTTPMiddlewareView) {
+	p.mMiddlewareViewList = append(p.mMiddlewareViewList, middlewareView)
+}
+
+func (p *Pisig) MiddlewareViewList() []HTTPMiddlewareView {
+	return p.mMiddlewareViewList
 }
 
 func (p *Pisig) Run() {
