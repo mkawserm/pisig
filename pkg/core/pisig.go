@@ -85,6 +85,9 @@ func (p *Pisig) runServer() {
 }
 
 func NewPisig(args ...interface{}) *Pisig {
+	if glog.V(3) {
+		glog.Infof("Creating new Pisig instance")
+	}
 	pisig := &Pisig{}
 	pisig.mPisigContext = nil
 	pisig.mEventPool = nil
@@ -129,6 +132,10 @@ func NewPisig(args ...interface{}) *Pisig {
 			return nil
 		}
 		pisig.mEventPool = eventPool
+
+		if glog.V(3) {
+			glog.Infof("New Pisig instance created")
+		}
 		return pisig
 	}
 
@@ -152,10 +159,14 @@ func NewPisig(args ...interface{}) *Pisig {
 		pisig.mPisigResponse = pisigResponse
 		pisig.mEventPool = eventPool
 		pisig.mPisigContext = pisigContext
+
+		if glog.V(3) {
+			glog.Infof("New Pisig instance created")
+		}
 		return pisig
 	}
 
-	glog.Errorln("Failed to create new pisig instance.")
+	glog.Errorln("Failed to create new Pisig instance.")
 	return nil
 }
 
