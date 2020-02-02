@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"github.com/golang/glog"
 	"github.com/mkawserm/pisig/pkg/conf"
 	"github.com/mkawserm/pisig/pkg/core"
 	"github.com/mkawserm/pisig/pkg/variant"
@@ -46,9 +47,14 @@ func (dph *DefaultPisigCMDHook) SetupCMD(pisigCMD *PisigCMD, pisigResponse conf.
 				variant.NewDefaultPisigSettings(),
 				pisigResponse,
 			)
-
+			if glog.V(3) {
+				glog.Infof("Registering all views")
+			}
 			pisig.AddView("/", &view.ErrorView{})
 
+			if glog.V(3) {
+				glog.Infof("Running Pisig")
+			}
 			pisig.Run()
 		},
 	}
