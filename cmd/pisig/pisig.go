@@ -4,7 +4,7 @@ import "github.com/mkawserm/pisig/pkg/cmd"
 
 func main() {
 	pisigCMD := cmd.PisigCMD{
-		Hook: &cmd.DefaultPisigHook{},
+		PisigHook: &cmd.DefaultPisigHook{},
 	}
 
 	pisigCMD.Setup()
