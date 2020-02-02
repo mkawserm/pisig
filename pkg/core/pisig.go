@@ -26,6 +26,10 @@ func (p *Pisig) PisigSettings() *types.PisigSettings {
 	return p.mPisigContext.GetPisigSettings()
 }
 
+func (p *Pisig) PisigStore() *types.PisigStore {
+	return p.mPisigContext.GetPisigStore()
+}
+
 func (p *Pisig) AddView(urlPattern string, view HTTPView) {
 	p.mServerMux.HandleFunc(urlPattern, view.Process(p))
 }
