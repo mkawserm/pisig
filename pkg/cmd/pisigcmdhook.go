@@ -2,7 +2,7 @@ package cmd
 
 import "github.com/mkawserm/pisig/pkg/conf"
 
-type PisigHook interface {
+type PisigCMDHook interface {
 	AppName() string
 	AppNameLong() string
 	AppVersion() string

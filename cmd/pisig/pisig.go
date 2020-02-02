@@ -7,7 +7,7 @@ import (
 
 func main() {
 	pisigCMD := cmd.PisigCMD{
-		PisigHook:     &cmd.DefaultPisigHook{},
+		PisigCMDHook:  &cmd.DefaultPisigCMDHook{},
 		PisigResponse: &conf.DefaultPisigResponse{},
 	}
 

@@ -8,30 +8,30 @@ import (
 	"github.com/spf13/cobra"
 )
 
-type DefaultPisigHook struct {
+type DefaultPisigCMDHook struct {
 }
 
-func (dph *DefaultPisigHook) AppName() string {
+func (dph *DefaultPisigCMDHook) AppName() string {
 	return core.ConstAppName
 }
 
-func (dph *DefaultPisigHook) AppVersion() string {
+func (dph *DefaultPisigCMDHook) AppVersion() string {
 	return core.ConstAppVersion
 }
 
-func (dph *DefaultPisigHook) AppAuthors() string {
+func (dph *DefaultPisigCMDHook) AppAuthors() string {
 	return core.ConstAppAuthors
 }
 
-func (dph *DefaultPisigHook) AppDescription() string {
+func (dph *DefaultPisigCMDHook) AppDescription() string {
 	return core.ConstAppDescription
 }
 
-func (dph *DefaultPisigHook) AppNameLong() string {
+func (dph *DefaultPisigCMDHook) AppNameLong() string {
 	return core.ConstAppDescription
 }
 
-func (dph *DefaultPisigHook) SetupCMD(pisigCMD *PisigCMD, pisigResponse conf.PisigResponse) {
+func (dph *DefaultPisigCMDHook) SetupCMD(pisigCMD *PisigCMD, pisigResponse conf.PisigResponse) {
 	serverCMD := &cobra.Command{
 		Use:   "server",
 		Short: "Run pisig server",
