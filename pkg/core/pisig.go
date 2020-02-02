@@ -2,31 +2,31 @@ package core
 
 import (
 	"github.com/golang/glog"
-	"github.com/mkawserm/pisig/pkg/types"
+	"github.com/mkawserm/pisig/pkg/variant"
 	"net/http"
 )
 
 type Pisig struct {
 	mServerMux    *http.ServeMux
 	mEventPool    *EventPool
-	mPisigContext *types.PisigContext
+	mPisigContext *variant.PisigContext
 
 	mMiddlewareViewList []HTTPMiddlewareView
 }
 
-func (p *Pisig) CORSOptions() *types.CORSOptions {
+func (p *Pisig) CORSOptions() *variant.CORSOptions {
 	return p.mPisigContext.GetCORSOptions()
 }
 
-func (p *Pisig) PisigContext() *types.PisigContext {
+func (p *Pisig) PisigContext() *variant.PisigContext {
 	return p.mPisigContext
 }
 
-func (p *Pisig) PisigSettings() *types.PisigSettings {
+func (p *Pisig) PisigSettings() *variant.PisigSettings {
 	return p.mPisigContext.GetPisigSettings()
 }
 
-func (p *Pisig) PisigStore() *types.PisigStore {
+func (p *Pisig) PisigStore() *variant.PisigStore {
 	return p.mPisigContext.GetPisigStore()
 }
 
@@ -84,19 +84,19 @@ func NewPisig(args ...interface{}) *Pisig {
 	pisig.mEventPool = nil
 	pisig.mServerMux = &http.ServeMux{}
 
-	var pisigSettings *types.PisigSettings
-	var corsOptions *types.CORSOptions
-	var pisigContext *types.PisigContext
+	var pisigSettings *variant.PisigSettings
+	var corsOptions *variant.CORSOptions
+	var pisigContext *variant.PisigContext
 
 	for _, val := range args {
 		switch val.(type) {
 
-		case *types.PisigContext:
-			pisigContext = val.(*types.PisigContext)
-		case *types.PisigSettings:
-			pisigSettings = val.(*types.PisigSettings)
-		case *types.CORSOptions:
-			corsOptions = val.(*types.CORSOptions)
+		case *variant.PisigContext:
+			pisigContext = val.(*variant.PisigContext)
+		case *variant.PisigSettings:
+			pisigSettings = val.(*variant.PisigSettings)
+		case *variant.CORSOptions:
+			corsOptions = val.(*variant.CORSOptions)
 		default:
 			break
 		}
@@ -132,7 +132,7 @@ func NewPisig(args ...interface{}) *Pisig {
 			return nil
 		}
 
-		pisigContext := types.NewPisigContext()
+		pisigContext := variant.NewPisigContext()
 		pisigContext.CORSOptions = corsOptions
 		pisigContext.PisigSettings = pisigSettings
 
@@ -145,19 +145,19 @@ func NewPisig(args ...interface{}) *Pisig {
 	return nil
 }
 
-func NewPisigSimple(corsOptions *types.CORSOptions, pisigSettings *types.PisigSettings) *Pisig {
+func NewPisigSimple(corsOptions *variant.CORSOptions, pisigSettings *variant.PisigSettings) *Pisig {
 	return NewPisig(corsOptions, pisigSettings)
 }
 
 func NewDefaultPisig() *Pisig {
 	pisig := NewPisigSimple(
-		&types.CORSOptions{
+		&variant.CORSOptions{
 			AllowAllOrigins:  true,
 			AllowCredentials: true,
 			AllowMethods:     []string{"GET", "POST", "OPTIONS", "DELETE"},
 			AllowHeaders:     []string{"Origin", "Accept", "Content-Type", "Authorization"},
 		},
-		types.NewDefaultPisigSettings(),
+		variant.NewDefaultPisigSettings(),
 	)
 
 	return pisig
