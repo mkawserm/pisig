@@ -95,7 +95,9 @@ func (e *EventPool) AddConnection(conn net.Conn) error {
 
 	e.mConnectionMap[fd] = conn
 	if len(e.mConnectionMap)%100 == 0 {
-		glog.V(1).Infof("Total number of connections: %v\n", len(e.mConnectionMap))
+		if glog.V(3) {
+			glog.Infof("Total number of connections: %v\n", len(e.mConnectionMap))
+		}
 	}
 
 	return nil
@@ -118,7 +120,9 @@ func (e *EventPool) RemoveConnection(conn net.Conn) error {
 	delete(e.mConnectionMap, fd)
 
 	if len(e.mConnectionMap)%100 == 0 {
-		glog.V(1).Infof("Total number of connections: %v\n", len(e.mConnectionMap))
+		if glog.V(3) {
+			glog.Infof("Total number of connections: %v\n", len(e.mConnectionMap))
+		}
 	}
 
 	return nil
