@@ -1,16 +1,27 @@
 package types
 
-import "sync"
+import (
+	"sync"
+)
 
 type PisigContext struct {
-	mIsLive bool
+	IsLive        bool
+	CORSOptions   *CORSOptions
+	PisigSettings *PisigSettings
 
 	mRWLock *sync.RWMutex
 }
 
+func (pc *PisigContext) GetCORSOptions() *CORSOptions {
+	return pc.CORSOptions
+}
+
+func (pc *PisigContext) GetPisigSettings() *PisigSettings {
+	return pc.PisigSettings
+}
+
 func NewPisigContext() *PisigContext {
 	return &PisigContext{
-		mIsLive: false,
 		mRWLock: &sync.RWMutex{},
 	}
 }

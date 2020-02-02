@@ -7,16 +7,13 @@ import (
 )
 
 type Pisig struct {
-	mServerMux *http.ServeMux
-
-	mEventPool     *EventPool
-	mCORSOptions   *types.CORSOptions
-	mPisigContext  *types.PisigContext
-	mPisigSettings *types.PisigSettings
+	mServerMux    *http.ServeMux
+	mEventPool    *EventPool
+	mPisigContext *types.PisigContext
 }
 
 func (p *Pisig) CORSOptions() *types.CORSOptions {
-	return p.mCORSOptions
+	return p.mPisigContext.GetCORSOptions()
 }
 
 func (p *Pisig) PisigContext() *types.PisigContext {
@@ -24,7 +21,7 @@ func (p *Pisig) PisigContext() *types.PisigContext {
 }
 
 func (p *Pisig) PisigSettings() *types.PisigSettings {
-	return p.mPisigSettings
+	return p.mPisigContext.GetPisigSettings()
 }
 
 func (p *Pisig) Run() {
@@ -42,55 +39,100 @@ func (p *Pisig) Run() {
 }
 
 func (p *Pisig) runServer() {
-	if p.mPisigSettings.EnableTLS {
+	if p.PisigSettings().EnableTLS {
 		if glog.V(1) {
-			glog.Infoln("Server is listening at: https://" + p.mPisigSettings.Host + ":" + p.mPisigSettings.Port)
+			glog.Infoln("Server is listening at: https://" + p.PisigSettings().Host + ":" + p.PisigSettings().Port)
 		}
-		err := http.ListenAndServeTLS(p.mPisigSettings.Host+":"+p.mPisigSettings.Port,
-			p.mPisigSettings.CertFile,
-			p.mPisigSettings.KeyFile, p.mServerMux)
+		err := http.ListenAndServeTLS(p.PisigSettings().Host+":"+p.PisigSettings().Port,
+			p.PisigSettings().CertFile,
+			p.PisigSettings().KeyFile, p.mServerMux)
 		if err != nil {
 			glog.Errorln("Server error: ", err)
 		}
 	} else {
 		if glog.V(1) {
-			glog.Infoln("Server is listening at: http://" + p.mPisigSettings.Host + ":" + p.mPisigSettings.Port)
+			glog.Infoln("Server is listening at: http://" + p.PisigSettings().Host + ":" + p.PisigSettings().Port)
 		}
-		err := http.ListenAndServe(p.mPisigSettings.Host+":"+p.mPisigSettings.Port, p.mServerMux)
+		err := http.ListenAndServe(p.PisigSettings().Host+":"+p.PisigSettings().Port, p.mServerMux)
 		if err != nil {
 			glog.Errorln("Server error: ", err)
 		}
 	}
 }
 
-func NewPisig(corsOptions *types.CORSOptions, pisigSettings *types.PisigSettings) *Pisig {
+func NewPisig(args ...interface{}) *Pisig {
+	pisig := &Pisig{}
+	pisig.mPisigContext = nil
+	pisig.mEventPool = nil
+	pisig.mServerMux = &http.ServeMux{}
 
-	serverMux := &http.ServeMux{}
+	var pisigSettings *types.PisigSettings
+	var corsOptions *types.CORSOptions
+	var pisigContext *types.PisigContext
 
-	eventPool, err := NewEventPool(
-		pisigSettings.EventPoolQueueSize,
-		pisigSettings.EventPoolWaitingTime,
-		nil,
-		nil)
+	for _, val := range args {
+		switch val.(type) {
 
-	if err != nil {
-		panic(err)
-		return nil
+		case *types.PisigContext:
+			pisigContext = val.(*types.PisigContext)
+		case *types.PisigSettings:
+			pisigSettings = val.(*types.PisigSettings)
+		case *types.CORSOptions:
+			corsOptions = val.(*types.CORSOptions)
+		default:
+			break
+		}
 	}
 
-	pisigContext := &types.PisigContext{}
+	if pisigContext != nil {
+		pisig.mPisigContext = pisigContext
+		eventPool, err := NewEventPool(
+			pisig.PisigSettings().EventPoolQueueSize,
+			pisig.PisigSettings().EventPoolWaitingTime,
+			nil,
+			nil,
+		)
 
-	return &Pisig{
-		mServerMux:     serverMux,
-		mEventPool:     eventPool,
-		mCORSOptions:   corsOptions,
-		mPisigContext:  pisigContext,
-		mPisigSettings: pisigSettings,
+		if err != nil {
+			panic(err)
+			return nil
+		}
+		pisig.mEventPool = eventPool
+		return pisig
 	}
+
+	if pisigSettings != nil && corsOptions != nil {
+
+		eventPool, err := NewEventPool(
+			pisigSettings.EventPoolQueueSize,
+			pisigSettings.EventPoolWaitingTime,
+			nil,
+			nil)
+
+		if err != nil {
+			panic(err)
+			return nil
+		}
+
+		pisigContext := types.NewPisigContext()
+		pisigContext.CORSOptions = corsOptions
+		pisigContext.PisigSettings = pisigSettings
+
+		pisig.mEventPool = eventPool
+		pisig.mPisigContext = pisigContext
+		return pisig
+	}
+
+	glog.Errorln("Failed to create new pisig instance.")
+	return nil
+}
+
+func NewPisigSimple(corsOptions *types.CORSOptions, pisigSettings *types.PisigSettings) *Pisig {
+	return NewPisig(corsOptions, pisigSettings)
 }
 
 func NewDefaultPisig() *Pisig {
-	pisig := NewPisig(
+	pisig := NewPisigSimple(
 		&types.CORSOptions{
 			AllowAllOrigins:  true,
 			AllowCredentials: true,
