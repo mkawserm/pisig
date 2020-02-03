@@ -14,7 +14,6 @@ type Pisig struct {
 	mServerMux    *http.ServeMux
 	mEventPool    *EventPool
 	mPisigContext *context.PisigContext
-	mPisigMessage message.PisigMessage
 
 	mMiddlewareViewList []HTTPMiddlewareView
 }
@@ -28,7 +27,7 @@ func (p *Pisig) PisigContext() *context.PisigContext {
 }
 
 func (p *Pisig) PisigMessage() message.PisigMessage {
-	return p.mPisigMessage
+	return p.mPisigContext.GetPisigMessage()
 }
 
 func (p *Pisig) PisigSettings() *settings.PisigSettings {
@@ -99,7 +98,7 @@ func NewPisig(args ...interface{}) *Pisig {
 	var pisigSettings *settings.PisigSettings
 	var corsOptions *cors.CORSOptions
 	var pisigContext *context.PisigContext
-	var pisigResponse message.PisigMessage
+	var pisigMessage message.PisigMessage
 
 	for _, val := range args {
 		if glog.V(3) {
@@ -114,15 +113,14 @@ func NewPisig(args ...interface{}) *Pisig {
 		case *cors.CORSOptions:
 			corsOptions = val.(*cors.CORSOptions)
 		case message.PisigMessage:
-			pisigResponse = val.(message.PisigMessage)
+			pisigMessage = val.(message.PisigMessage)
 		default:
 			break
 		}
 	}
 
-	if pisigContext != nil && pisigResponse != nil {
+	if pisigContext != nil {
 		pisig.mPisigContext = pisigContext
-		pisig.mPisigMessage = pisigResponse
 		eventPool, err := NewEventPool(
 			pisig.PisigSettings().EventPoolQueueSize,
 			pisig.PisigSettings().EventPoolWaitingTime,
@@ -142,7 +140,7 @@ func NewPisig(args ...interface{}) *Pisig {
 		return pisig
 	}
 
-	if pisigSettings != nil && corsOptions != nil && pisigResponse != nil {
+	if pisigSettings != nil && corsOptions != nil && pisigMessage != nil {
 
 		eventPool, err := NewEventPool(
 			pisigSettings.EventPoolQueueSize,
@@ -159,7 +157,7 @@ func NewPisig(args ...interface{}) *Pisig {
 		pisigContext.CORSOptions = corsOptions
 		pisigContext.PisigSettings = pisigSettings
 
-		pisig.mPisigMessage = pisigResponse
+		pisigContext.PisigMessage = pisigMessage
 		pisig.mEventPool = eventPool
 		pisig.mPisigContext = pisigContext
 

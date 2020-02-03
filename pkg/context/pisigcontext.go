@@ -3,12 +3,14 @@ package context
 import (
 	"github.com/mkawserm/pisig/pkg/cache"
 	"github.com/mkawserm/pisig/pkg/cors"
+	"github.com/mkawserm/pisig/pkg/message"
 	"github.com/mkawserm/pisig/pkg/settings"
 )
 
 type PisigContext struct {
 	PisigStore    *cache.PisigStore
 	CORSOptions   *cors.CORSOptions
+	PisigMessage  message.PisigMessage
 	PisigSettings *settings.PisigSettings
 }
 
@@ -22,6 +24,10 @@ func (pc *PisigContext) GetPisigSettings() *settings.PisigSettings {
 
 func (pc *PisigContext) GetPisigStore() *cache.PisigStore {
 	return pc.PisigStore
+}
+
+func (pc *PisigContext) GetPisigMessage() message.PisigMessage {
+	return pc.PisigMessage
 }
 
 // Create new PisigContext
