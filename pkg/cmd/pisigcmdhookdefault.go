@@ -11,30 +11,30 @@ import (
 	"github.com/spf13/cobra"
 )
 
-type DefaultPisigCMDHook struct {
+type PisigCMDHookDefault struct {
 }
 
-func (dph *DefaultPisigCMDHook) AppName() string {
+func (dph *PisigCMDHookDefault) AppName() string {
 	return core.ConstAppName
 }
 
-func (dph *DefaultPisigCMDHook) AppVersion() string {
+func (dph *PisigCMDHookDefault) AppVersion() string {
 	return core.ConstAppVersion
 }
 
-func (dph *DefaultPisigCMDHook) AppAuthors() string {
+func (dph *PisigCMDHookDefault) AppAuthors() string {
 	return core.ConstAppAuthors
 }
 
-func (dph *DefaultPisigCMDHook) AppDescription() string {
+func (dph *PisigCMDHookDefault) AppDescription() string {
 	return core.ConstAppDescription
 }
 
-func (dph *DefaultPisigCMDHook) AppNameLong() string {
+func (dph *PisigCMDHookDefault) AppNameLong() string {
 	return core.ConstAppDescription
 }
 
-func (dph *DefaultPisigCMDHook) SetupCMD(pisigCMD *PisigCMD, pisigMessage message.PisigMessage) {
+func (dph *PisigCMDHookDefault) SetupCMD(pisigCMD *PisigCMD, pisigMessage message.PisigMessage) {
 	serverCMD := &cobra.Command{
 		Use:   "server",
 		Short: "Run pisig server",
@@ -64,11 +64,11 @@ func (dph *DefaultPisigCMDHook) SetupCMD(pisigCMD *PisigCMD, pisigMessage messag
 	pisigCMD.AddRunCommand(serverCMD)
 }
 
-func (dph *DefaultPisigCMDHook) ProcessShellCMD(string) {
+func (dph *PisigCMDHookDefault) ProcessShellCMD(string) {
 
 }
 
-func (dph *DefaultPisigCMDHook) ShellNewLinePrefix(appName string, inputCounter int) string {
+func (dph *PisigCMDHookDefault) ShellNewLinePrefix(appName string, inputCounter int) string {
 	return fmt.Sprintf("%s%s%d%s%s ",
 		appName,
 		"[",

@@ -7,8 +7,8 @@ import (
 
 func main() {
 	pisigCMD := cmd.PisigCMD{
-		PisigCMDHook: &cmd.DefaultPisigCMDHook{},
-		PisigMessage: &message.DefaultPisigMessage{},
+		PisigCMDHook: &cmd.PisigCMDHookDefault{},
+		PisigMessage: &message.PisigMessageDefault{},
 	}
 
 	pisigCMD.Setup()
