@@ -2,9 +2,10 @@ package cmd
 
 import (
 	"github.com/golang/glog"
-	"github.com/mkawserm/pisig/pkg/conf"
 	"github.com/mkawserm/pisig/pkg/core"
-	"github.com/mkawserm/pisig/pkg/variant"
+	"github.com/mkawserm/pisig/pkg/cors"
+	"github.com/mkawserm/pisig/pkg/message"
+	"github.com/mkawserm/pisig/pkg/settings"
 	"github.com/mkawserm/pisig/pkg/view"
 	"github.com/spf13/cobra"
 )
@@ -32,20 +33,20 @@ func (dph *DefaultPisigCMDHook) AppNameLong() string {
 	return core.ConstAppDescription
 }
 
-func (dph *DefaultPisigCMDHook) SetupCMD(pisigCMD *PisigCMD, pisigResponse conf.PisigResponse) {
+func (dph *DefaultPisigCMDHook) SetupCMD(pisigCMD *PisigCMD, pisigMessage message.PisigMessage) {
 	serverCMD := &cobra.Command{
 		Use:   "server",
 		Short: "Run pisig server",
 		Run: func(cmd *cobra.Command, args []string) {
 			pisig := core.NewPisigSimple(
-				&variant.CORSOptions{
+				&cors.CORSOptions{
 					AllowAllOrigins:  true,
 					AllowCredentials: true,
 					AllowMethods:     []string{"GET", "POST", "OPTIONS", "DELETE"},
 					AllowHeaders:     []string{"Origin", "Accept", "Content-Type", "Authorization"},
 				},
-				variant.NewDefaultPisigSettings(),
-				pisigResponse,
+				settings.NewDefaultPisigSettings(),
+				pisigMessage,
 			)
 			if glog.V(3) {
 				glog.Infof("Registering all views")

@@ -3,16 +3,16 @@ package cmd
 import (
 	goFlag "flag"
 	"fmt"
-	"github.com/mkawserm/pisig/pkg/conf"
 	"github.com/mkawserm/pisig/pkg/core"
+	"github.com/mkawserm/pisig/pkg/message"
 	"github.com/spf13/cobra"
 	pFlag "github.com/spf13/pflag"
 	"os"
 )
 
 type PisigCMD struct {
-	PisigCMDHook  PisigCMDHook
-	PisigResponse conf.PisigResponse
+	PisigCMDHook PisigCMDHook
+	PisigMessage message.PisigMessage
 
 	mRootCMD      *cobra.Command
 	mRunSubCMD    *cobra.Command
@@ -66,7 +66,7 @@ func (pc *PisigCMD) Setup() {
 	pc.mRootCMD.AddCommand(getPisigSubCommand())
 
 	// SETUP CUSTOM CMDS FROM HOOK
-	pc.PisigCMDHook.SetupCMD(pc, pc.PisigResponse)
+	pc.PisigCMDHook.SetupCMD(pc, pc.PisigMessage)
 
 	pFlag.CommandLine.AddGoFlagSet(goFlag.CommandLine)
 }

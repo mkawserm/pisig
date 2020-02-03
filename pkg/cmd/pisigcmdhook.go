@@ -1,6 +1,6 @@
 package cmd
 
-import "github.com/mkawserm/pisig/pkg/conf"
+import "github.com/mkawserm/pisig/pkg/message"
 
 type PisigCMDHook interface {
 	AppName() string
@@ -9,5 +9,5 @@ type PisigCMDHook interface {
 	AppAuthors() string
 	AppDescription() string
 
-	SetupCMD(pisigCMD *PisigCMD, pisigResponse conf.PisigResponse)
+	SetupCMD(pisigCMD *PisigCMD, pisigMessage message.PisigMessage)
 }
