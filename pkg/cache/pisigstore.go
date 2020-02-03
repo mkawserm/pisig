@@ -1,4 +1,4 @@
-package variant
+package cache
 
 import (
 	"strings"

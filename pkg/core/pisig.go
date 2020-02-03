@@ -2,11 +2,11 @@ package core
 
 import (
 	"github.com/golang/glog"
+	"github.com/mkawserm/pisig/pkg/cache"
 	"github.com/mkawserm/pisig/pkg/context"
 	"github.com/mkawserm/pisig/pkg/cors"
 	"github.com/mkawserm/pisig/pkg/message"
 	"github.com/mkawserm/pisig/pkg/settings"
-	"github.com/mkawserm/pisig/pkg/variant"
 	"net/http"
 )
 
@@ -35,7 +35,7 @@ func (p *Pisig) PisigSettings() *settings.PisigSettings {
 	return p.mPisigContext.GetPisigSettings()
 }
 
-func (p *Pisig) PisigStore() *variant.PisigStore {
+func (p *Pisig) PisigStore() *cache.PisigStore {
 	return p.mPisigContext.GetPisigStore()
 }
 

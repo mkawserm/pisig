@@ -1,6 +1,8 @@
 package cmd
 
-import "github.com/mkawserm/pisig/pkg/message"
+import (
+	"github.com/mkawserm/pisig/pkg/message"
+)
 
 type PisigCMDHook interface {
 	AppName() string
