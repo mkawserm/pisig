@@ -16,6 +16,8 @@ type PisigCMD struct {
 	PisigCMDHook PisigCMDHook
 	PisigMessage message.PisigMessage
 
+	AllowPisigCMD bool
+
 	mRootCMD      *cobra.Command
 	mRunSubCMD    *cobra.Command
 	mCreateSubCMD *cobra.Command
@@ -65,8 +67,11 @@ func (pc *PisigCMD) Setup() {
 
 	pc.mRootCMD.AddCommand(pc.mRunSubCMD)
 	pc.mRootCMD.AddCommand(pc.mCreateSubCMD)
-	pc.mRootCMD.AddCommand(pc.getPisigSubCommand())
 	pc.mRootCMD.AddCommand(pc.getShellSubCommand())
+
+	if pc.AllowPisigCMD {
+		pc.mRootCMD.AddCommand(pc.getPisigSubCommand())
+	}
 
 	// INIT ALL STATUS CODE
 	pc.PisigMessage.InitAllStatusCode()
