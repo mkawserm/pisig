@@ -5,6 +5,7 @@ import (
 	"github.com/mkawserm/pisig/pkg/cache"
 	"github.com/mkawserm/pisig/pkg/context"
 	"github.com/mkawserm/pisig/pkg/cors"
+	"github.com/mkawserm/pisig/pkg/event"
 	"github.com/mkawserm/pisig/pkg/message"
 	"github.com/mkawserm/pisig/pkg/settings"
 	"net/http"
@@ -12,7 +13,7 @@ import (
 
 type Pisig struct {
 	mServerMux    *http.ServeMux
-	mEventPool    *EventPool
+	mEPool        *event.EPool
 	mPisigContext *context.PisigContext
 
 	mMiddlewareViewList []HTTPMiddlewareView
@@ -55,8 +56,8 @@ func (p *Pisig) Run() {
 		glog.Infof("Server starting...\n")
 	}
 
-	p.mEventPool.Setup()
-	go p.mEventPool.RunMainEventLoop()
+	p.mEPool.Setup()
+	go p.mEPool.RunMainEventLoop()
 	p.runServer()
 
 	if glog.V(1) {
@@ -92,7 +93,7 @@ func NewPisig(args ...interface{}) *Pisig {
 	}
 	pisig := &Pisig{}
 	pisig.mPisigContext = nil
-	pisig.mEventPool = nil
+	pisig.mEPool = nil
 	pisig.mServerMux = &http.ServeMux{}
 
 	var pisigSettings *settings.PisigSettings
@@ -121,7 +122,7 @@ func NewPisig(args ...interface{}) *Pisig {
 
 	if pisigContext != nil {
 		pisig.mPisigContext = pisigContext
-		eventPool, err := NewEventPool(
+		ePool, err := event.NewEPool(
 			pisig.PisigSettings().EventPoolQueueSize,
 			pisig.PisigSettings().EventPoolWaitingTime,
 			nil,
@@ -132,7 +133,7 @@ func NewPisig(args ...interface{}) *Pisig {
 			panic(err)
 			return nil
 		}
-		pisig.mEventPool = eventPool
+		pisig.mEPool = ePool
 
 		if glog.V(3) {
 			glog.Infof("New Pisig instance created")
@@ -142,7 +143,7 @@ func NewPisig(args ...interface{}) *Pisig {
 
 	if pisigSettings != nil && corsOptions != nil && pisigMessage != nil {
 
-		eventPool, err := NewEventPool(
+		ePool, err := event.NewEPool(
 			pisigSettings.EventPoolQueueSize,
 			pisigSettings.EventPoolWaitingTime,
 			nil,
@@ -158,7 +159,7 @@ func NewPisig(args ...interface{}) *Pisig {
 		pisigContext.PisigSettings = pisigSettings
 
 		pisigContext.PisigMessage = pisigMessage
-		pisig.mEventPool = eventPool
+		pisig.mEPool = ePool
 		pisig.mPisigContext = pisigContext
 
 		if glog.V(3) {

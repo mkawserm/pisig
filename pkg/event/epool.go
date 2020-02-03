@@ -1,4 +1,4 @@
-package core
+package event
 
 import (
 	"github.com/gobwas/ws/wsutil"
@@ -10,34 +10,34 @@ import (
 	"syscall"
 )
 
-type EventPoolProcessMessageHook func(conn net.Conn, msg []byte, opCode byte) error
-type EventPoolRemoveConnectionHook func(conn net.Conn) error
+type EPoolProcessMessageHook func(conn net.Conn, msg []byte, opCode byte) error
+type EPoolRemoveConnectionHook func(conn net.Conn) error
 
-type EventPool struct {
+type EPool struct {
 	mFd             int
 	mConnectionMap  map[int]net.Conn
 	mEventQueueSize int
 	mWaitingTime    int
 
-	mProcessMessageHook   EventPoolProcessMessageHook
-	mRemoveConnectionHook EventPoolRemoveConnectionHook
+	mProcessMessageHook   EPoolProcessMessageHook
+	mRemoveConnectionHook EPoolRemoveConnectionHook
 
 	mRWLock *sync.RWMutex
 }
 
-func NewEventPool(
+func NewEPool(
 	eventQueueSize int,
 	waitingTime int,
-	processMessageHook EventPoolProcessMessageHook,
-	removeConnectionHook EventPoolRemoveConnectionHook,
-) (*EventPool, error) {
+	processMessageHook EPoolProcessMessageHook,
+	removeConnectionHook EPoolRemoveConnectionHook,
+) (*EPool, error) {
 	fd, err := unix.EpollCreate1(0)
 
 	if err != nil {
 		return nil, err
 	}
 
-	return &EventPool{
+	return &EPool{
 		mFd:                   fd,
 		mRWLock:               &sync.RWMutex{},
 		mConnectionMap:        make(map[int]net.Conn),
@@ -48,11 +48,11 @@ func NewEventPool(
 	}, nil
 }
 
-//func NewDefaultEventPool() (*EventPool, error) {
-//	return NewEventPool(100,100)
+//func NewDefaultEventPool() (*EPool, error) {
+//	return NewEPool(100,100)
 //}
 
-func (e *EventPool) Setup() {
+func (e *EPool) Setup() {
 	var rLimit syscall.Rlimit
 	if err := syscall.Getrlimit(syscall.RLIMIT_NOFILE, &rLimit); err != nil {
 		glog.Errorf("Get rlimit call failed \n")
@@ -66,7 +66,7 @@ func (e *EventPool) Setup() {
 	}
 }
 
-func (e *EventPool) GetConnection(connectionId int) (net.Conn, bool) {
+func (e *EPool) GetConnection(connectionId int) (net.Conn, bool) {
 	e.mRWLock.RLock()
 	defer e.mRWLock.RUnlock()
 
@@ -74,7 +74,7 @@ func (e *EventPool) GetConnection(connectionId int) (net.Conn, bool) {
 	return v, ok
 }
 
-func (e *EventPool) AddConnection(conn net.Conn) error {
+func (e *EPool) AddConnection(conn net.Conn) error {
 	// Extract file descriptor associated with the connection
 	fd := WebsocketFileDescriptor(conn)
 
@@ -103,7 +103,7 @@ func (e *EventPool) AddConnection(conn net.Conn) error {
 	return nil
 }
 
-func (e *EventPool) RemoveConnection(conn net.Conn) error {
+func (e *EPool) RemoveConnection(conn net.Conn) error {
 	fd := WebsocketFileDescriptor(conn)
 
 	err := unix.EpollCtl(e.mFd,
@@ -128,7 +128,7 @@ func (e *EventPool) RemoveConnection(conn net.Conn) error {
 	return nil
 }
 
-func (e *EventPool) Wait() ([]net.Conn, error) {
+func (e *EPool) Wait() ([]net.Conn, error) {
 	events := make([]unix.EpollEvent, e.mEventQueueSize)
 	n, err := unix.EpollWait(e.mFd, events, e.mWaitingTime)
 
@@ -147,14 +147,14 @@ func (e *EventPool) Wait() ([]net.Conn, error) {
 	return connections, nil
 }
 
-func (e *EventPool) TotalActiveConnections() int {
+func (e *EPool) TotalActiveConnections() int {
 	e.mRWLock.RLock()
 	defer e.mRWLock.RUnlock()
 
 	return len(e.mConnectionMap)
 }
 
-func (e *EventPool) GetConnectionIdSlice() []int {
+func (e *EPool) GetConnectionIdSlice() []int {
 	e.mRWLock.RLock()
 	defer e.mRWLock.RUnlock()
 	var idList []int
@@ -166,7 +166,7 @@ func (e *EventPool) GetConnectionIdSlice() []int {
 	return idList
 }
 
-func (e *EventPool) GetConnectionSlice() []net.Conn {
+func (e *EPool) GetConnectionSlice() []net.Conn {
 	e.mRWLock.RLock()
 	defer e.mRWLock.RUnlock()
 	var connections []net.Conn
@@ -178,14 +178,14 @@ func (e *EventPool) GetConnectionSlice() []net.Conn {
 	return connections
 }
 
-func (e *EventPool) GetConnectionMap() map[int]net.Conn {
+func (e *EPool) GetConnectionMap() map[int]net.Conn {
 	e.mRWLock.RLock()
 	defer e.mRWLock.RUnlock()
 
 	return e.mConnectionMap
 }
 
-func (e *EventPool) RunMainEventLoop() {
+func (e *EPool) RunMainEventLoop() {
 	for {
 		connections, err := e.Wait()
 		if err != nil {
