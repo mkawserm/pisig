@@ -12,4 +12,7 @@ type PisigCMDHook interface {
 	AppDescription() string
 
 	SetupCMD(pisigCMD *PisigCMD, pisigMessage message.PisigMessage)
+
+	ShellNewLinePrefix(appName string, inputCounter int) string
+	ProcessShellCMD(cmdString string)
 }

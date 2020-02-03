@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"fmt"
 	"github.com/golang/glog"
 	"github.com/mkawserm/pisig/pkg/core"
 	"github.com/mkawserm/pisig/pkg/cors"
@@ -61,4 +62,18 @@ func (dph *DefaultPisigCMDHook) SetupCMD(pisigCMD *PisigCMD, pisigMessage messag
 	}
 
 	pisigCMD.AddRunCommand(serverCMD)
+}
+
+func (dph *DefaultPisigCMDHook) ProcessShellCMD(string) {
+
+}
+
+func (dph *DefaultPisigCMDHook) ShellNewLinePrefix(appName string, inputCounter int) string {
+	return fmt.Sprintf("%s%s%d%s%s ",
+		appName,
+		"[",
+		inputCounter,
+		"]",
+		"$",
+	)
 }

@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"bufio"
 	goFlag "flag"
 	"fmt"
 	"github.com/mkawserm/pisig/pkg/core"
@@ -8,6 +9,7 @@ import (
 	"github.com/spf13/cobra"
 	pFlag "github.com/spf13/pflag"
 	"os"
+	"strings"
 )
 
 type PisigCMD struct {
@@ -63,7 +65,8 @@ func (pc *PisigCMD) Setup() {
 
 	pc.mRootCMD.AddCommand(pc.mRunSubCMD)
 	pc.mRootCMD.AddCommand(pc.mCreateSubCMD)
-	pc.mRootCMD.AddCommand(getPisigSubCommand())
+	pc.mRootCMD.AddCommand(pc.getPisigSubCommand())
+	pc.mRootCMD.AddCommand(pc.getShellSubCommand())
 
 	// INIT ALL STATUS CODE
 	pc.PisigMessage.InitAllStatusCode()
@@ -81,7 +84,7 @@ func (pc *PisigCMD) Execute() {
 	}
 }
 
-func getPisigSubCommand() *cobra.Command {
+func (pc *PisigCMD) getPisigSubCommand() *cobra.Command {
 	pisigSubCommand := &cobra.Command{
 		Use:   core.ConstAppName,
 		Short: "pisig core",
@@ -111,4 +114,43 @@ func getPisigSubCommand() *cobra.Command {
 	pisigSubCommand.AddCommand(pisigAuthorsCommand)
 
 	return pisigSubCommand
+}
+
+func (pc *PisigCMD) getShellSubCommand() *cobra.Command {
+	shellSubCommand := &cobra.Command{
+		Use:   "shell",
+		Short: "command interpreter",
+		Run: func(cmd *cobra.Command, args []string) {
+			reader := bufio.NewReader(os.Stdin)
+			inputCounter := 0
+			for {
+				inputCounter++
+				fmt.Printf(pc.PisigCMDHook.ShellNewLinePrefix(pc.PisigCMDHook.AppName(), inputCounter))
+
+				cmdString, err := reader.ReadString('\n')
+				if err != nil {
+					_, _ = fmt.Fprintln(os.Stderr, err)
+				}
+				cmdString = strings.TrimSuffix(cmdString, "\n")
+
+				switch cmdString {
+				case "clear":
+					fmt.Print("\x1b[H\x1b[2J")
+				case "reset":
+					fmt.Print("\x1b[H\x1b[2J")
+					inputCounter = 0
+				case "version":
+					fmt.Println(pc.PisigCMDHook.AppVersion())
+				case "authors":
+					fmt.Println(pc.PisigCMDHook.AppAuthors())
+				case "exit":
+					os.Exit(1)
+				default:
+					pc.PisigCMDHook.ProcessShellCMD(cmdString)
+				}
+			}
+
+		},
+	}
+	return shellSubCommand
 }
