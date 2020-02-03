@@ -8,7 +8,8 @@ import (
 )
 
 type PisigContext struct {
-	PisigStore    *cache.PisigStore
+	PisigStore *cache.PisigStore
+
 	CORSOptions   *cors.CORSOptions
 	PisigMessage  message.PisigMessage
 	PisigSettings *settings.PisigSettings
