@@ -65,6 +65,9 @@ func (pc *PisigCMD) Setup() {
 	pc.mRootCMD.AddCommand(pc.mCreateSubCMD)
 	pc.mRootCMD.AddCommand(getPisigSubCommand())
 
+	// INIT ALL STATUS CODE
+	pc.PisigMessage.InitAllStatusCode()
+
 	// SETUP CUSTOM CMDS FROM HOOK
 	pc.PisigCMDHook.SetupCMD(pc, pc.PisigMessage)
 

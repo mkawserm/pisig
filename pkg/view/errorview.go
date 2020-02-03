@@ -58,7 +58,7 @@ func (errorView *ErrorView) Process(pisig *core.Pisig) http.HandlerFunc {
 		}
 
 		writer.Header().Add("Content-Type", "application/json; charset=utf-8")
-		_, _ = writer.Write(errorView.pisig.PisigResponse().HTTP404())
+		_, _ = writer.Write(errorView.pisig.PisigMessage().HTTP404())
 
 		if glog.V(3) {
 			glog.Infof("ErrorView - Process - http.HandlerFunc done\n")
