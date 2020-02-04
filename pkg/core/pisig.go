@@ -8,6 +8,7 @@ import (
 	"github.com/mkawserm/pisig/pkg/event"
 	"github.com/mkawserm/pisig/pkg/message"
 	"github.com/mkawserm/pisig/pkg/settings"
+	"net"
 	"net/http"
 )
 
@@ -87,9 +88,76 @@ func (p *Pisig) runServer() {
 	}
 }
 
+func (p *Pisig) AddWebSocketConnection(conn net.Conn) bool {
+	if glog.V(3) {
+		glog.Infof("Adding connection\n")
+	}
+
+	err := p.mEPool.AddConnection(conn)
+
+	if err != nil {
+		glog.Errorf("Failed to add connection - %v \n", err)
+		return false
+	}
+
+	if glog.V(3) {
+		glog.Infof("Connection added\n")
+	}
+	return true
+}
+
+func (p *Pisig) RemoveWebSocketConnection(conn net.Conn) bool {
+	if glog.V(3) {
+		glog.Infof("Removing connection\n")
+	}
+
+	//err := p.mEPool.RemoveConnection(conn)
+	//
+	//if err != nil {
+	//	glog.Errorf("Failed to remove connection - %v \n",err)
+	//	return false
+	//}
+	//
+	//if glog.V(3) {
+	//	glog.Infof("Connection removed \n")
+	//}
+
+	return true
+}
+
+func (p *Pisig) hookRemoveConnection(conn net.Conn) error {
+	if glog.V(3) {
+		glog.Infof("Removing connection\n")
+	}
+
+	// CLEAN UP RESOURCES
+
+	err := p.mEPool.RemoveConnection(conn)
+
+	if err != nil {
+		glog.Errorf("Failed to remove connection - %v \n", err)
+	}
+
+	if glog.V(3) {
+		glog.Infof("Connection removed\n")
+	}
+
+	return err
+}
+
+func (p *Pisig) hookProcessMessage(conn net.Conn, msg []byte, opCode byte) error {
+	if glog.V(3) {
+		glog.Infof("Process message\n")
+	}
+
+	// CLEAN UP RESOURCES
+
+	return nil
+}
+
 func NewPisig(args ...interface{}) *Pisig {
 	if glog.V(3) {
-		glog.Infof("Creating new Pisig instance")
+		glog.Infof("Creating new Pisig instance\n")
 	}
 	pisig := &Pisig{}
 	pisig.mPisigContext = nil
@@ -125,8 +193,8 @@ func NewPisig(args ...interface{}) *Pisig {
 		ePool, err := event.NewEPool(
 			pisig.PisigSettings().EventPoolQueueSize,
 			pisig.PisigSettings().EventPoolWaitingTime,
-			nil,
-			nil,
+			pisig.hookProcessMessage,
+			pisig.hookRemoveConnection,
 		)
 
 		if err != nil {
