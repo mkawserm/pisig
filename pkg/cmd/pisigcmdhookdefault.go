@@ -54,7 +54,7 @@ func (dph *PisigCMDHookDefault) SetupCMD(pisigCMD *PisigCMD, pisigMessage messag
 			if glog.V(3) {
 				glog.Infof("Registering all views")
 			}
-			pisig.AddView("/ws", &view.WebSocketView{})
+			pisig.AddView("/ws/", &view.WebSocketView{})
 			pisig.AddView("/", &view.ErrorView{})
 
 			if glog.V(3) {

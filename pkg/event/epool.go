@@ -76,7 +76,15 @@ func (e *EPool) GetConnection(connectionId int) (net.Conn, bool) {
 
 func (e *EPool) AddConnection(conn net.Conn) error {
 	// Extract file descriptor associated with the connection
+	if glog.V(3) {
+		glog.Infof("Connection: %d\n", conn)
+	}
+
 	fd := WebsocketFileDescriptor(conn)
+
+	if glog.V(3) {
+		glog.Infof("Connect id: %d\n", fd)
+	}
 
 	err := unix.EpollCtl(e.mFd,
 		syscall.EPOLL_CTL_ADD,
@@ -221,8 +229,20 @@ func (e *EPool) RunMainEventLoop() {
 }
 
 func WebsocketFileDescriptor(conn net.Conn) int {
+	if glog.V(3) {
+		glog.Infof("Inspecting websocket file descriptor")
+	}
+
+	if glog.V(3) {
+		glog.Infof("Connection: %d\n", conn)
+	}
+
 	tcpConn := reflect.Indirect(reflect.ValueOf(conn)).FieldByName("conn")
-	fdVal := tcpConn.FieldByName("mFd")
+	fdVal := tcpConn.FieldByName("fd")
 	pfdVal := reflect.Indirect(fdVal).FieldByName("pfd")
+	if glog.V(3) {
+		//glog.Infof(pfdVal.FieldByName("Sysfd").String())
+		glog.Infof("Websocket file descriptor found\n")
+	}
 	return int(pfdVal.FieldByName("Sysfd").Int())
 }
