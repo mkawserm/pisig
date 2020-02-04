@@ -39,14 +39,17 @@ func (dph *PisigCMDHookDefault) SetupCMD(pisigCMD *PisigCMD, pisigMessage messag
 		Use:   "server",
 		Short: "Run pisig server",
 		Run: func(cmd *cobra.Command, args []string) {
-			pisig := core.NewPisigSimple(
-				&cors.CORSOptions{
-					AllowAllOrigins:  true,
-					AllowCredentials: true,
-					AllowMethods:     []string{"GET", "POST", "OPTIONS", "DELETE"},
-					AllowHeaders:     []string{"Origin", "Accept", "Content-Type", "Authorization"},
-				},
-				settings.NewDefaultPisigSettings(),
+
+			corsOptions := &cors.CORSOptions{
+				AllowAllOrigins:  true,
+				AllowCredentials: true,
+				AllowMethods:     []string{"GET", "POST", "OPTIONS", "DELETE"},
+				AllowHeaders:     []string{"Origin", "Accept", "Content-Type", "Authorization"},
+			}
+
+			pisigSettings := settings.NewDefaultPisigSettings()
+
+			pisig := core.NewPisigSimple(corsOptions, pisigSettings,
 				pisigMessage,
 			)
 			if glog.V(3) {
@@ -68,9 +71,9 @@ func (dph *PisigCMDHookDefault) ProcessShellCMD(string) {
 
 }
 
-func (dph *PisigCMDHookDefault) ShellNewLinePrefix(appName string, inputCounter int) string {
+func (dph *PisigCMDHookDefault) ShellNewLinePrefix(inputCounter int) string {
 	return fmt.Sprintf("%s%s%d%s%s ",
-		appName,
+		dph.AppName(),
 		"[",
 		inputCounter,
 		"]",

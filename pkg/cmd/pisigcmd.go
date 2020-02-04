@@ -130,7 +130,7 @@ func (pc *PisigCMD) getShellSubCommand() *cobra.Command {
 			inputCounter := 0
 			for {
 				inputCounter++
-				fmt.Printf(pc.CMDHook.ShellNewLinePrefix(pc.CMDHook.AppName(), inputCounter))
+				fmt.Printf(pc.CMDHook.ShellNewLinePrefix(inputCounter))
 
 				cmdString, err := reader.ReadString('\n')
 				if err != nil {
@@ -149,7 +149,7 @@ func (pc *PisigCMD) getShellSubCommand() *cobra.Command {
 				case "authors":
 					fmt.Println(pc.CMDHook.AppAuthors())
 				case "exit":
-					os.Exit(1)
+					os.Exit(0)
 				default:
 					pc.CMDHook.ProcessShellCMD(cmdString)
 				}

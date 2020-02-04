@@ -6,6 +6,9 @@ build:
 run:
 	go run cmd/pisig/pisig.go run server --stderrthreshold INFO --logtostderr=true --v 3
 
+shell:
+	go run cmd/pisig/pisig.go shell --stderrthreshold INFO --logtostderr=true --v 3
+
 module-download:
 	go mod download
 
