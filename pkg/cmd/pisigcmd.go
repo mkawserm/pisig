@@ -13,8 +13,8 @@ import (
 )
 
 type PisigCMD struct {
-	PisigCMDHook PisigCMDHook
-	PisigMessage message.PisigMessage
+	CMDHook PisigCMDHook
+	Message message.PisigMessage
 
 	AllowPisigCMD bool
 
@@ -37,9 +37,9 @@ func (pc *PisigCMD) AddCreateCommand(cmds ...*cobra.Command) {
 
 func (pc *PisigCMD) Setup() {
 	pc.mRootCMD = &cobra.Command{
-		Use:   pc.PisigCMDHook.AppName(),
-		Short: pc.PisigCMDHook.AppNameLong(),
-		Long:  pc.PisigCMDHook.AppDescription(),
+		Use:   pc.CMDHook.AppName(),
+		Short: pc.CMDHook.AppNameLong(),
+		Long:  pc.CMDHook.AppDescription(),
 		Run: func(cmd *cobra.Command, args []string) {
 			fmt.Println(cmd.UsageString())
 		},
@@ -74,10 +74,10 @@ func (pc *PisigCMD) Setup() {
 	}
 
 	// INIT ALL STATUS CODE
-	pc.PisigMessage.InitAllStatusCode()
+	pc.Message.InitAllStatusCode()
 
 	// SETUP CUSTOM CMDS FROM HOOK
-	pc.PisigCMDHook.SetupCMD(pc, pc.PisigMessage)
+	pc.CMDHook.SetupCMD(pc, pc.Message)
 
 	pFlag.CommandLine.AddGoFlagSet(goFlag.CommandLine)
 }
@@ -130,7 +130,7 @@ func (pc *PisigCMD) getShellSubCommand() *cobra.Command {
 			inputCounter := 0
 			for {
 				inputCounter++
-				fmt.Printf(pc.PisigCMDHook.ShellNewLinePrefix(pc.PisigCMDHook.AppName(), inputCounter))
+				fmt.Printf(pc.CMDHook.ShellNewLinePrefix(pc.CMDHook.AppName(), inputCounter))
 
 				cmdString, err := reader.ReadString('\n')
 				if err != nil {
@@ -145,13 +145,13 @@ func (pc *PisigCMD) getShellSubCommand() *cobra.Command {
 					fmt.Print("\x1b[H\x1b[2J")
 					inputCounter = 0
 				case "version":
-					fmt.Println(pc.PisigCMDHook.AppVersion())
+					fmt.Println(pc.CMDHook.AppVersion())
 				case "authors":
-					fmt.Println(pc.PisigCMDHook.AppAuthors())
+					fmt.Println(pc.CMDHook.AppAuthors())
 				case "exit":
 					os.Exit(1)
 				default:
-					pc.PisigCMDHook.ProcessShellCMD(cmdString)
+					pc.CMDHook.ProcessShellCMD(cmdString)
 				}
 			}
 

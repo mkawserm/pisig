@@ -6,10 +6,10 @@ import (
 )
 
 func main() {
-	pisigCMD := cmd.PisigCMD{
+	pisigCMD := &cmd.PisigCMD{
 		AllowPisigCMD: true,
-		PisigCMDHook:  &cmd.PisigCMDHookDefault{},
-		PisigMessage:  &message.PisigMessageDefault{},
+		CMDHook:       &cmd.PisigCMDHookDefault{},
+		Message:       &message.PisigMessageDefault{},
 	}
 
 	pisigCMD.Setup()
