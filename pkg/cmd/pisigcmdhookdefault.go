@@ -60,6 +60,8 @@ func (dph *PisigCMDHookDefault) SetupCMD(pisigCMD *PisigCMD, pisigMessage messag
 			if glog.V(3) {
 				glog.Infof("Running Pisig")
 			}
+
+			pisig.RunTopicDispatcher()
 			pisig.RunHTTPServer()
 		},
 	}

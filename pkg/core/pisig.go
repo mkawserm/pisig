@@ -13,9 +13,11 @@ import (
 )
 
 type Pisig struct {
-	mServerMux    *http.ServeMux
-	mEPool        *event.EPool
-	mPisigContext *context.PisigContext
+	mServerMux          *http.ServeMux
+	mEPool              *event.EPool
+	mPisigContext       *context.PisigContext
+	mTopicProducerQueue event.TopicQueue
+	mTopicDispatcher    *TopicDispatcher
 
 	mMiddlewareViewList []HTTPMiddlewareView
 }
@@ -40,6 +42,10 @@ func (p *Pisig) PisigStore() *cache.PisigStore {
 	return p.mPisigContext.GetPisigStore()
 }
 
+func (p *Pisig) Produce(topic event.Topic) {
+	p.mTopicProducerQueue <- topic
+}
+
 func (p *Pisig) AddView(urlPattern string, view HTTPView) {
 	p.mServerMux.HandleFunc(urlPattern, view.Process(p))
 }
@@ -50,6 +56,10 @@ func (p *Pisig) AddMiddlewareView(middlewareView HTTPMiddlewareView) {
 
 func (p *Pisig) MiddlewareViewList() []HTTPMiddlewareView {
 	return p.mMiddlewareViewList
+}
+
+func (p *Pisig) RunTopicDispatcher() {
+	p.mTopicDispatcher.Run()
 }
 
 func (p *Pisig) RunHTTPServer() {
@@ -195,6 +205,10 @@ func NewPisig(args ...interface{}) *Pisig {
 
 	if pisigContext != nil {
 		pisig.mPisigContext = pisigContext
+		pisig.mTopicProducerQueue = make(event.TopicQueue,
+			pisigContext.GetPisigSettings().TopicQueueSize)
+		pisig.mTopicDispatcher = NewTopicDispatcher(pisig, pisig.mTopicProducerQueue)
+
 		ePool, err := event.NewEPool(
 			pisig.PisigSettings().EventPoolQueueSize,
 			pisig.PisigSettings().EventPoolWaitingTime,
@@ -234,6 +248,9 @@ func NewPisig(args ...interface{}) *Pisig {
 		pisigContext.PisigMessage = pisigMessage
 		pisig.mEPool = ePool
 		pisig.mPisigContext = pisigContext
+		pisig.mTopicProducerQueue = make(event.TopicQueue,
+			pisigContext.GetPisigSettings().TopicQueueSize)
+		pisig.mTopicDispatcher = NewTopicDispatcher(pisig, pisig.mTopicProducerQueue)
 
 		if glog.V(3) {
 			glog.Infof("New Pisig instance created")

@@ -40,4 +40,4 @@ func (t *Topic) DataType() string {
 }
 
 type TopicQueue chan Topic
-type TopicQueuePool chan chan Topic
+type TopicQueuePool chan TopicQueue

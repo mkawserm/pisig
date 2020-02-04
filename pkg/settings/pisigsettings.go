@@ -10,6 +10,9 @@ type PisigSettings struct {
 	CertFile  string
 	KeyFile   string
 
+	TopicQueueSize     int
+	TopicQueuePoolSize int
+
 	EventPoolQueueSize   int
 	EventPoolWaitingTime int
 
@@ -118,6 +121,10 @@ func (ps *PisigSettings) GetByteSliceMap(key string) map[string][]byte {
 	return nil
 }
 
+func NewEmptyPisigSettings() *PisigSettings {
+	return &PisigSettings{mSettings: make(map[string]interface{})}
+}
+
 // Create new PisigSettings
 func NewPisigSettings(host string,
 	port string,
@@ -127,16 +134,19 @@ func NewPisigSettings(host string,
 	eventPoolQueueSize int,
 	eventPoolWaitTime int) *PisigSettings {
 
-	return &PisigSettings{
-		Host:                 host,
-		Port:                 port,
-		EnableTLS:            enableTLS,
-		CertFile:             certFile,
-		KeyFile:              keyFile,
-		EventPoolQueueSize:   eventPoolQueueSize,
-		EventPoolWaitingTime: eventPoolWaitTime,
-		mSettings:            make(map[string]interface{}),
-	}
+	ps := NewEmptyPisigSettings()
+	ps.Host = host
+	ps.Port = port
+	ps.EnableTLS = enableTLS
+	ps.CertFile = certFile
+	ps.KeyFile = keyFile
+	ps.EventPoolWaitingTime = eventPoolWaitTime
+	ps.EventPoolQueueSize = eventPoolQueueSize
+
+	ps.TopicQueueSize = 100
+	ps.TopicQueuePoolSize = 100
+
+	return ps
 }
 
 // Create new default PisigSettings
