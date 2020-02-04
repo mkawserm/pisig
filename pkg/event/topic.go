@@ -38,3 +38,6 @@ type Topic struct {
 func (t *Topic) DataType() string {
 	return reflect.TypeOf(t.Data).String()
 }
+
+type TopicQueue chan Topic
+type TopicQueuePool chan chan Topic
