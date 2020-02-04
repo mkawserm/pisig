@@ -1,8 +1,13 @@
 package service
 
-import "github.com/mkawserm/pisig/pkg/event"
+import (
+	"github.com/mkawserm/pisig/pkg/context"
+	"github.com/mkawserm/pisig/pkg/event"
+)
 
 type PisigService interface {
+	Setup(pisigContext *context.PisigContext)
+
 	SetSettings(settings map[string]interface{}) (error, bool)
 	UpdateSettings(settings map[string]interface{}) (error, bool)
 

@@ -1,8 +1,10 @@
-package event
+package core
 
 import (
 	"github.com/gobwas/ws/wsutil"
 	"github.com/golang/glog"
+	"github.com/mkawserm/pisig/pkg/context"
+	"github.com/mkawserm/pisig/pkg/event"
 	"golang.org/x/sys/unix"
 	"net"
 	"reflect"
@@ -10,25 +12,22 @@ import (
 	"syscall"
 )
 
-type EPoolProcessMessageHook func(conn net.Conn, msg []byte, opCode byte) error
+//type EPoolProcessMessageHook func(conn net.Conn, msg []byte, opCode byte) error
 type EPoolRemoveConnectionHook func(conn net.Conn) error
 
 type EPool struct {
+	mPisigContext   *context.PisigContext
 	mFd             int
 	mConnectionMap  map[int]net.Conn
 	mEventQueueSize int
 	mWaitingTime    int
 
-	mProcessMessageHook   EPoolProcessMessageHook
 	mRemoveConnectionHook EPoolRemoveConnectionHook
 
 	mRWLock *sync.RWMutex
 }
 
-func NewEPool(
-	eventQueueSize int,
-	waitingTime int,
-	processMessageHook EPoolProcessMessageHook,
+func NewEPool(ctx *context.PisigContext,
 	removeConnectionHook EPoolRemoveConnectionHook,
 ) (*EPool, error) {
 	fd, err := unix.EpollCreate1(0)
@@ -38,12 +37,12 @@ func NewEPool(
 	}
 
 	return &EPool{
+		mPisigContext:         ctx,
 		mFd:                   fd,
 		mRWLock:               &sync.RWMutex{},
 		mConnectionMap:        make(map[int]net.Conn),
-		mEventQueueSize:       eventQueueSize,
-		mWaitingTime:          waitingTime,
-		mProcessMessageHook:   processMessageHook,
+		mEventQueueSize:       ctx.PisigSettings.EventPoolQueueSize,
+		mWaitingTime:          ctx.PisigSettings.EventPoolWaitingTime,
 		mRemoveConnectionHook: removeConnectionHook,
 	}, nil
 }
@@ -226,13 +225,38 @@ func (e *EPool) RunMainEventLoop() {
 				continue
 			}
 
-			if e.mProcessMessageHook != nil {
-				if err := e.mProcessMessageHook(conn, msg, byte(opCode)); err != nil {
-					glog.Errorf("Failed to process message, error: %v\n", e)
-				}
+			if err := e.ProcessWebSocketMessage(conn, msg, byte(opCode)); err != nil {
+				glog.Errorf("Failed to process message, error: %v\n", e)
 			}
 		}
 	}
+}
+
+func (e *EPool) ProcessWebSocketMessage(conn net.Conn, msg []byte, opCode byte) error {
+	if glog.V(3) {
+		glog.Infof("Process message\n")
+	}
+
+	topic := event.Topic{
+		Name: "WebSocketEvent",
+		Key:  []byte(""),
+		Data: event.WebSocketEvent{
+			Conn:    conn,
+			OpCode:  opCode,
+			Message: msg,
+		},
+	}
+
+	e.mPisigContext.ProduceTopic(topic)
+
+	//if glog.V(3) {
+	//	glog.Infof("Message: %s\n", string(msg))
+	//	glog.Infof("OpCode: %d\n", opCode)
+	//	//err := wsutil.WriteServerText(conn,[]byte("Hello World"))
+	//	//println(err)
+	//}
+
+	return nil
 }
 
 func WebsocketFileDescriptor(conn net.Conn) int {

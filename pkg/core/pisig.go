@@ -7,17 +7,17 @@ import (
 	"github.com/mkawserm/pisig/pkg/cors"
 	"github.com/mkawserm/pisig/pkg/event"
 	"github.com/mkawserm/pisig/pkg/message"
+	"github.com/mkawserm/pisig/pkg/service"
 	"github.com/mkawserm/pisig/pkg/settings"
 	"net"
 	"net/http"
 )
 
 type Pisig struct {
-	mServerMux          *http.ServeMux
-	mEPool              *event.EPool
-	mPisigContext       *context.PisigContext
-	mTopicProducerQueue event.TopicQueue
-	mTopicDispatcher    *TopicDispatcher
+	mServerMux       *http.ServeMux
+	mEPool           *EPool
+	mPisigContext    *context.PisigContext
+	mTopicDispatcher *TopicDispatcher
 
 	mMiddlewareViewList []HTTPMiddlewareView
 }
@@ -42,8 +42,13 @@ func (p *Pisig) PisigStore() *cache.PisigStore {
 	return p.mPisigContext.GetPisigStore()
 }
 
-func (p *Pisig) Produce(topic event.Topic) {
-	p.mTopicProducerQueue <- topic
+func (p *Pisig) ProduceTopic(topic event.Topic) {
+	p.mPisigContext.TopicProducerQueue <- topic
+}
+
+func (p *Pisig) AddConsumer(topicName string, service service.PisigService) bool {
+
+	return false
 }
 
 func (p *Pisig) AddView(urlPattern string, view HTTPView) {
@@ -155,21 +160,6 @@ func (p *Pisig) hookRemoveConnection(conn net.Conn) error {
 	return err
 }
 
-func (p *Pisig) hookProcessMessage(conn net.Conn, msg []byte, opCode byte) error {
-	if glog.V(3) {
-		glog.Infof("Process message\n")
-	}
-
-	if glog.V(3) {
-		glog.Infof("Message: %s\n", string(msg))
-		glog.Infof("OpCode: %d\n", opCode)
-		//err := wsutil.WriteServerText(conn,[]byte("Hello World"))
-		//println(err)
-	}
-
-	return nil
-}
-
 func NewPisig(args ...interface{}) *Pisig {
 	if glog.V(3) {
 		glog.Infof("Creating new Pisig instance\n")
@@ -205,16 +195,11 @@ func NewPisig(args ...interface{}) *Pisig {
 
 	if pisigContext != nil {
 		pisig.mPisigContext = pisigContext
-		pisig.mTopicProducerQueue = make(event.TopicQueue,
+		pisig.mPisigContext.TopicProducerQueue = make(event.TopicQueue,
 			pisigContext.GetPisigSettings().TopicQueueSize)
-		pisig.mTopicDispatcher = NewTopicDispatcher(pisig, pisig.mTopicProducerQueue)
+		pisig.mTopicDispatcher = NewTopicDispatcher(pisig, pisig.mPisigContext.TopicProducerQueue)
 
-		ePool, err := event.NewEPool(
-			pisig.PisigSettings().EventPoolQueueSize,
-			pisig.PisigSettings().EventPoolWaitingTime,
-			pisig.hookProcessMessage,
-			pisig.hookRemoveConnection,
-		)
+		ePool, err := NewEPool(pisig.mPisigContext, pisig.hookRemoveConnection)
 
 		if err != nil {
 			panic(err)
@@ -230,27 +215,24 @@ func NewPisig(args ...interface{}) *Pisig {
 
 	if pisigSettings != nil && corsOptions != nil && pisigMessage != nil {
 
-		ePool, err := event.NewEPool(
-			pisigSettings.EventPoolQueueSize,
-			pisigSettings.EventPoolWaitingTime,
-			pisig.hookProcessMessage,
-			pisig.hookRemoveConnection)
-
-		if err != nil {
-			panic(err)
-			return nil
-		}
-
 		pisigContext := context.NewPisigContext()
 		pisigContext.CORSOptions = corsOptions
 		pisigContext.PisigSettings = pisigSettings
 
 		pisigContext.PisigMessage = pisigMessage
-		pisig.mEPool = ePool
 		pisig.mPisigContext = pisigContext
-		pisig.mTopicProducerQueue = make(event.TopicQueue,
+
+		ePool, err := NewEPool(pisig.mPisigContext, pisig.hookRemoveConnection)
+
+		if err != nil {
+			panic(err)
+			return nil
+		}
+		pisig.mEPool = ePool
+
+		pisig.mPisigContext.TopicProducerQueue = make(event.TopicQueue,
 			pisigContext.GetPisigSettings().TopicQueueSize)
-		pisig.mTopicDispatcher = NewTopicDispatcher(pisig, pisig.mTopicProducerQueue)
+		pisig.mTopicDispatcher = NewTopicDispatcher(pisig, pisig.mPisigContext.TopicProducerQueue)
 
 		if glog.V(3) {
 			glog.Infof("New Pisig instance created")
