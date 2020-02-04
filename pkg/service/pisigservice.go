@@ -1,5 +1,7 @@
 package service
 
+import "github.com/mkawserm/pisig/pkg/event"
+
 type PisigService interface {
 	SetSettings(settings map[string]interface{}) (error, bool)
 	UpdateSettings(settings map[string]interface{}) (error, bool)
@@ -9,5 +11,5 @@ type PisigService interface {
 	ServiceVersion() string
 	ServiceAuthors() string
 
-	Process(data interface{}) (error, bool)
+	Process(topic event.Topic, synchronous bool) (error, *event.Topic)
 }
