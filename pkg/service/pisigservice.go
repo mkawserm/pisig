@@ -6,6 +6,8 @@ type PisigService interface {
 
 	GroupName() string
 	ServiceName() string
+	ServiceVersion() string
+	ServiceAuthors() string
 
 	Process(data interface{}) (error, bool)
 }
