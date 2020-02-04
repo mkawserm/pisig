@@ -11,6 +11,8 @@ type ErrorView struct {
 }
 
 func (errorView *ErrorView) Process(pisig *core.Pisig) http.HandlerFunc {
+
+	// BOILERPLATE BEGIN
 	if glog.V(3) {
 		glog.Infof("ErrorView - Process begin\n")
 	}
@@ -20,8 +22,11 @@ func (errorView *ErrorView) Process(pisig *core.Pisig) http.HandlerFunc {
 	if glog.V(3) {
 		glog.Infof("ErrorView - Process done\n")
 	}
+	// BOILERPLATE END
 
 	return func(writer http.ResponseWriter, request *http.Request) {
+
+		// BOILERPLATE BEGIN
 		if glog.V(3) {
 			glog.Infof("ErrorView - Process - http.HandlerFunc begin\n")
 			glog.Infof("PATH - " + request.URL.Path + "\n")
@@ -57,11 +62,17 @@ func (errorView *ErrorView) Process(pisig *core.Pisig) http.HandlerFunc {
 			glog.Infof("Middleware processing complete\n")
 		}
 
+		// BOILERPLATE END
+
+		// MAIN LOGIC
 		writer.Header().Add("Content-Type", "application/json; charset=utf-8")
 		_, _ = writer.Write(errorView.pisig.PisigMessage().HTTP404())
+		// MAIN LOGIC END
 
+		// BOILERPLATE BEGIN
 		if glog.V(3) {
 			glog.Infof("ErrorView - Process - http.HandlerFunc done\n")
 		}
+		// BOILERPLATE END
 	}
 }
