@@ -49,12 +49,12 @@ func (dph *PisigCMDHookDefault) SetupCMD(pisigCMD *PisigCMD, pisigMessage messag
 
 			pisigSettings := settings.NewDefaultPisigSettings()
 
-			pisig := core.NewPisigSimple(corsOptions, pisigSettings,
-				pisigMessage,
-			)
+			pisig := core.NewPisigSimple(corsOptions, pisigSettings, pisigMessage)
+
 			if glog.V(3) {
 				glog.Infof("Registering all views")
 			}
+			pisig.AddView("/ws", &view.WebSocketView{})
 			pisig.AddView("/", &view.ErrorView{})
 
 			if glog.V(3) {
