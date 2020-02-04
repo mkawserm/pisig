@@ -1,2 +1,2 @@
-// Pisig is a reusable high performance push server framework
+// Pisig is a reusable high performance websocket focused server framework
 package pisig
