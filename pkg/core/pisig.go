@@ -150,7 +150,12 @@ func (p *Pisig) hookProcessMessage(conn net.Conn, msg []byte, opCode byte) error
 		glog.Infof("Process message\n")
 	}
 
-	// CLEAN UP RESOURCES
+	if glog.V(3) {
+		glog.Infof("Message: %s\n", string(msg))
+		glog.Infof("OpCode: %d\n", opCode)
+		//err := wsutil.WriteServerText(conn,[]byte("Hello World"))
+		//println(err)
+	}
 
 	return nil
 }
@@ -214,8 +219,8 @@ func NewPisig(args ...interface{}) *Pisig {
 		ePool, err := event.NewEPool(
 			pisigSettings.EventPoolQueueSize,
 			pisigSettings.EventPoolWaitingTime,
-			nil,
-			nil)
+			pisig.hookProcessMessage,
+			pisig.hookRemoveConnection)
 
 		if err != nil {
 			panic(err)

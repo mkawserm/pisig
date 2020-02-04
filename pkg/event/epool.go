@@ -209,6 +209,13 @@ func (e *EPool) RunMainEventLoop() {
 
 			msg, opCode, err := wsutil.ReadClientData(conn)
 
+			//fmt.Println(msg)
+			//fmt.Println(opCode)
+			//fmt.Println(err)
+			//
+			//fmt.Println(e.mRemoveConnectionHook)
+			//fmt.Println(e.mProcessMessageHook)
+
 			if err != nil {
 				if e.mRemoveConnectionHook != nil {
 					if err := e.mRemoveConnectionHook(conn); err != nil {
@@ -233,9 +240,9 @@ func WebsocketFileDescriptor(conn net.Conn) int {
 		glog.Infof("Inspecting websocket file descriptor")
 	}
 
-	if glog.V(3) {
-		glog.Infof("Connection: %d\n", conn)
-	}
+	//if glog.V(3) {
+	//	glog.Infof("Connection: %d\n", conn)
+	//}
 
 	tcpConn := reflect.Indirect(reflect.ValueOf(conn)).FieldByName("conn")
 	fdVal := tcpConn.FieldByName("fd")
