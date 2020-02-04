@@ -52,21 +52,21 @@ func (p *Pisig) MiddlewareViewList() []HTTPMiddlewareView {
 	return p.mMiddlewareViewList
 }
 
-func (p *Pisig) Run() {
+func (p *Pisig) RunHTTPServer() {
 	if glog.V(1) {
 		glog.Infof("Server starting...\n")
 	}
 
 	p.mEPool.Setup()
 	go p.mEPool.RunMainEventLoop()
-	p.runServer()
+	p.runHTTPServer()
 
 	if glog.V(1) {
 		glog.Infof("Server exited gracefully.\n")
 	}
 }
 
-func (p *Pisig) runServer() {
+func (p *Pisig) runHTTPServer() {
 	if p.PisigSettings().EnableTLS {
 		if glog.V(1) {
 			glog.Infoln("Server is listening at: https://" + p.PisigSettings().Host + ":" + p.PisigSettings().Port)

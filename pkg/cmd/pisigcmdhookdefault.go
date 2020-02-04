@@ -37,7 +37,7 @@ func (dph *PisigCMDHookDefault) AppNameLong() string {
 func (dph *PisigCMDHookDefault) SetupCMD(pisigCMD *PisigCMD, pisigMessage message.PisigMessage) {
 	serverCMD := &cobra.Command{
 		Use:   "server",
-		Short: "Run pisig server",
+		Short: "run pisig http server",
 		Run: func(cmd *cobra.Command, args []string) {
 
 			corsOptions := &cors.CORSOptions{
@@ -60,7 +60,7 @@ func (dph *PisigCMDHookDefault) SetupCMD(pisigCMD *PisigCMD, pisigMessage messag
 			if glog.V(3) {
 				glog.Infof("Running Pisig")
 			}
-			pisig.Run()
+			pisig.RunHTTPServer()
 		},
 	}
 
