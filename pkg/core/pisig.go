@@ -1,6 +1,7 @@
 package core
 
 import (
+	"github.com/gobwas/ws/wsutil"
 	"github.com/golang/glog"
 	"github.com/mkawserm/pisig/pkg/cache"
 	"github.com/mkawserm/pisig/pkg/event"
@@ -37,6 +38,15 @@ func (p *Pisig) PisigSettings() *settings.PisigSettings {
 
 func (p *Pisig) PisigStore() *cache.PisigStore {
 	return p.mPisigContext.GetPisigStore()
+}
+
+func (p *Pisig) SendMessageToAll(message []byte) {
+	for _, conn := range p.mEPool.GetConnectionSlice() {
+		err := wsutil.WriteServerText(conn, message)
+		if err != nil {
+			glog.Infof("%v\n", err)
+		}
+	}
 }
 
 func (p *Pisig) ProduceTopic(topic event.Topic) {
