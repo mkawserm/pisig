@@ -19,7 +19,7 @@ type PisigServiceRegistry struct {
 	mRWLock *sync.RWMutex
 }
 
-func (psr *PisigServiceRegistry) GetTopicListenerLis(topicName string) []interface{} {
+func (psr *PisigServiceRegistry) GetTopicListenerList(topicName string) []interface{} {
 	psr.mRWLock.RLock()
 	defer psr.mRWLock.RUnlock()
 
