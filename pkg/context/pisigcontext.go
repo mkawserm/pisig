@@ -46,5 +46,8 @@ func (pc *PisigContext) ProduceTopic(topic event.Topic) {
 
 // Create new PisigContext
 func NewPisigContext() *PisigContext {
-	return &PisigContext{PisigStore: cache.NewPisigStore()}
+	return &PisigContext{
+		PisigStore:           cache.NewPisigStore(),
+		PisigServiceRegistry: registry.NewPisigServiceRegistry(),
+	}
 }

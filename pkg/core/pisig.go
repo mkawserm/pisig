@@ -46,7 +46,21 @@ func (p *Pisig) ProduceTopic(topic event.Topic) {
 	p.mPisigContext.TopicProducerQueue <- topic
 }
 
-func (p *Pisig) AddConsumer(topicName string, service service.PisigService) bool {
+func (p *Pisig) AddService(topicNameList []string, pisigService service.PisigService) bool {
+	added, err := p.mPisigContext.PisigServiceRegistry.AddService(pisigService)
+	if err != nil {
+		glog.Errorf("Error: %v", err)
+		return false
+	}
+
+	if added {
+		for _, topicName := range topicNameList {
+			p.mPisigContext.PisigServiceRegistry.AddTopicListener(topicName, pisigService)
+		}
+
+		pisigService.SetTopicProducerHandler(p.ProduceTopic)
+		return true
+	}
 
 	return false
 }
@@ -171,8 +185,8 @@ func NewPisig(args ...interface{}) *Pisig {
 
 	var pisigSettings *settings.PisigSettings
 	var corsOptions *cors.CORSOptions
-	var pisigContext *context.PisigContext
 	var pisigMessage message.PisigMessage
+	var pisigContext *context.PisigContext
 
 	for _, val := range args {
 		if glog.V(3) {
