@@ -62,6 +62,18 @@ func (p *Pisig) AddService(topicNameList []string, pisigService service.PisigSer
 			p.mPisigContext.PisigServiceRegistry.AddTopicListener(topicName, pisigService)
 		}
 
+		group := p.mPisigContext.GetPisigSettings().GetMap(pisigService.GroupName())
+
+		if group != nil {
+			if serviceSettingsMap, ok := group[pisigService.ServiceName()]; ok {
+				if serviceSettings, ok := serviceSettingsMap.(map[string]interface{}); ok {
+					if err, ok := pisigService.SetSettings(serviceSettings); !ok {
+						glog.Errorf("%v\n", err)
+					}
+				}
+			}
+		}
+
 		pisigService.SetTopicProducerHandler(p.ProduceTopic)
 		return true
 	}
