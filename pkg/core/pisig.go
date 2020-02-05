@@ -46,6 +46,10 @@ func (p *Pisig) ProduceTopic(topic event.Topic) {
 	p.mPisigContext.TopicProducerQueue <- topic
 }
 
+func (p *Pisig) GetTopicListenerList(topicName string) []interface{} {
+	return p.mPisigContext.GetPisigServiceRegistry().GetTopicListenerList(topicName)
+}
+
 func (p *Pisig) AddService(topicNameList []string, pisigService service.PisigService) bool {
 	added, err := p.mPisigContext.PisigServiceRegistry.AddService(pisigService)
 	if err != nil {

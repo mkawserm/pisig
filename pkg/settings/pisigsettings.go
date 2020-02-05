@@ -160,6 +160,6 @@ func NewDefaultPisigSettings() *PisigSettings {
 		"",
 		100,
 		100,
-		100,
-		10)
+		1000,
+		2)
 }

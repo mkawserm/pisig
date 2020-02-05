@@ -1,8 +1,9 @@
 package core
 
 import (
-	"fmt"
+	"github.com/golang/glog"
 	"github.com/mkawserm/pisig/pkg/event"
+	"github.com/mkawserm/pisig/pkg/service"
 )
 
 type TopicProcessor struct {
@@ -32,7 +33,23 @@ func (tp TopicProcessor) Start() {
 			select {
 			case topic := <-tp.TopicQueue:
 				// we have received a topic do something with it.
-				fmt.Println(topic)
+				if glog.V(3) {
+					glog.Infof("Distributing topic to the topic listener\n")
+				}
+
+				topicListenerList := tp.Pisig.GetTopicListenerList(topic.Name)
+				for i := range topicListenerList {
+					topicListener := topicListenerList[i]
+
+					pisigService, isPisigService := topicListener.(service.PisigService)
+					if isPisigService {
+						err, _ := pisigService.Process(topic, false)
+						if err != nil {
+							glog.Errorf("Error: %v\n", err)
+						}
+					}
+				}
+
 			case <-tp.quit:
 				return
 			}
