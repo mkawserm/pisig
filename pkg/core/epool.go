@@ -27,7 +27,7 @@ type EPool struct {
 	mRWLock *sync.RWMutex
 }
 
-func NewEPool(ctx *context.PisigContext,
+func NewEPool(pisigContext *context.PisigContext,
 	removeConnectionHook EPoolRemoveConnectionHook,
 ) (*EPool, error) {
 	fd, err := unix.EpollCreate1(0)
@@ -37,12 +37,12 @@ func NewEPool(ctx *context.PisigContext,
 	}
 
 	return &EPool{
-		mPisigContext:         ctx,
+		mPisigContext:         pisigContext,
 		mFd:                   fd,
 		mRWLock:               &sync.RWMutex{},
 		mConnectionMap:        make(map[int]net.Conn),
-		mEventQueueSize:       ctx.PisigSettings.EventPoolQueueSize,
-		mWaitingTime:          ctx.PisigSettings.EventPoolWaitingTime,
+		mEventQueueSize:       pisigContext.PisigSettings.EventPoolQueueSize,
+		mWaitingTime:          pisigContext.PisigSettings.EventPoolWaitingTime,
 		mRemoveConnectionHook: removeConnectionHook,
 	}, nil
 }
@@ -51,7 +51,7 @@ func NewEPool(ctx *context.PisigContext,
 //	return NewEPool(100,100)
 //}
 
-func (e *EPool) Setup() {
+func (ePool *EPool) Setup() {
 	var rLimit syscall.Rlimit
 	if err := syscall.Getrlimit(syscall.RLIMIT_NOFILE, &rLimit); err != nil {
 		glog.Errorf("Get rlimit call failed \n")
@@ -65,15 +65,15 @@ func (e *EPool) Setup() {
 	}
 }
 
-func (e *EPool) GetConnection(connectionId int) (net.Conn, bool) {
-	e.mRWLock.RLock()
-	defer e.mRWLock.RUnlock()
+func (ePool *EPool) GetConnection(connectionId int) (net.Conn, bool) {
+	ePool.mRWLock.RLock()
+	defer ePool.mRWLock.RUnlock()
 
-	v, ok := e.mConnectionMap[connectionId]
+	v, ok := ePool.mConnectionMap[connectionId]
 	return v, ok
 }
 
-func (e *EPool) AddConnection(conn net.Conn) error {
+func (ePool *EPool) AddConnection(conn net.Conn) error {
 	// Extract file descriptor associated with the connection
 	if glog.V(3) {
 		glog.Infof("Connection: %d\n", conn)
@@ -85,7 +85,7 @@ func (e *EPool) AddConnection(conn net.Conn) error {
 		glog.Infof("Connect id: %d\n", fd)
 	}
 
-	err := unix.EpollCtl(e.mFd,
+	err := unix.EpollCtl(ePool.mFd,
 		syscall.EPOLL_CTL_ADD,
 		fd,
 		&unix.EpollEvent{
@@ -97,23 +97,23 @@ func (e *EPool) AddConnection(conn net.Conn) error {
 		return err
 	}
 
-	e.mRWLock.Lock()
-	defer e.mRWLock.Unlock()
+	ePool.mRWLock.Lock()
+	defer ePool.mRWLock.Unlock()
 
-	e.mConnectionMap[fd] = conn
-	if len(e.mConnectionMap)%100 == 0 {
+	ePool.mConnectionMap[fd] = conn
+	if len(ePool.mConnectionMap)%100 == 0 {
 		if glog.V(3) {
-			glog.Infof("Total number of connections: %v\n", len(e.mConnectionMap))
+			glog.Infof("Total number of connections: %v\n", len(ePool.mConnectionMap))
 		}
 	}
 
 	return nil
 }
 
-func (e *EPool) RemoveConnection(conn net.Conn) error {
+func (ePool *EPool) RemoveConnection(conn net.Conn) error {
 	fd := WebsocketFileDescriptor(conn)
 
-	err := unix.EpollCtl(e.mFd,
+	err := unix.EpollCtl(ePool.mFd,
 		syscall.EPOLL_CTL_DEL,
 		fd, nil)
 
@@ -121,80 +121,80 @@ func (e *EPool) RemoveConnection(conn net.Conn) error {
 		return err
 	}
 
-	e.mRWLock.Lock()
-	defer e.mRWLock.Unlock()
+	ePool.mRWLock.Lock()
+	defer ePool.mRWLock.Unlock()
 
-	delete(e.mConnectionMap, fd)
+	delete(ePool.mConnectionMap, fd)
 
-	if len(e.mConnectionMap)%100 == 0 {
+	if len(ePool.mConnectionMap)%100 == 0 {
 		if glog.V(3) {
-			glog.Infof("Total number of connections: %v\n", len(e.mConnectionMap))
+			glog.Infof("Total number of connections: %v\n", len(ePool.mConnectionMap))
 		}
 	}
 
 	return nil
 }
 
-func (e *EPool) Wait() ([]net.Conn, error) {
-	events := make([]unix.EpollEvent, e.mEventQueueSize)
-	n, err := unix.EpollWait(e.mFd, events, e.mWaitingTime)
+func (ePool *EPool) Wait() ([]net.Conn, error) {
+	events := make([]unix.EpollEvent, ePool.mEventQueueSize)
+	n, err := unix.EpollWait(ePool.mFd, events, ePool.mWaitingTime)
 
 	if err != nil {
 		return nil, err
 	}
 
-	e.mRWLock.RLock()
-	defer e.mRWLock.RUnlock()
+	ePool.mRWLock.RLock()
+	defer ePool.mRWLock.RUnlock()
 
 	var connections []net.Conn
 	for i := 0; i < n; i++ {
-		conn := e.mConnectionMap[int(events[i].Fd)]
+		conn := ePool.mConnectionMap[int(events[i].Fd)]
 		connections = append(connections, conn)
 	}
 	return connections, nil
 }
 
-func (e *EPool) TotalActiveConnections() int {
-	e.mRWLock.RLock()
-	defer e.mRWLock.RUnlock()
+func (ePool *EPool) TotalActiveConnections() int {
+	ePool.mRWLock.RLock()
+	defer ePool.mRWLock.RUnlock()
 
-	return len(e.mConnectionMap)
+	return len(ePool.mConnectionMap)
 }
 
-func (e *EPool) GetConnectionIdSlice() []int {
-	e.mRWLock.RLock()
-	defer e.mRWLock.RUnlock()
+func (ePool *EPool) GetConnectionIdSlice() []int {
+	ePool.mRWLock.RLock()
+	defer ePool.mRWLock.RUnlock()
 	var idList []int
 
-	for i := range e.mConnectionMap {
+	for i := range ePool.mConnectionMap {
 		idList = append(idList, i)
 	}
 
 	return idList
 }
 
-func (e *EPool) GetConnectionSlice() []net.Conn {
-	e.mRWLock.RLock()
-	defer e.mRWLock.RUnlock()
+func (ePool *EPool) GetConnectionSlice() []net.Conn {
+	ePool.mRWLock.RLock()
+	defer ePool.mRWLock.RUnlock()
 	var connections []net.Conn
 
-	for _, con := range e.mConnectionMap {
+	for _, con := range ePool.mConnectionMap {
 		connections = append(connections, con)
 	}
 
 	return connections
 }
 
-func (e *EPool) GetConnectionMap() map[int]net.Conn {
-	e.mRWLock.RLock()
-	defer e.mRWLock.RUnlock()
+func (ePool *EPool) GetConnectionMap() map[int]net.Conn {
+	ePool.mRWLock.RLock()
+	defer ePool.mRWLock.RUnlock()
 
-	return e.mConnectionMap
+	return ePool.mConnectionMap
 }
 
-func (e *EPool) RunMainEventLoop() {
+func (ePool *EPool) RunMainEventLoop() {
 	for {
-		connections, err := e.Wait()
+		connections, err := ePool.Wait()
 		if err != nil {
 			glog.Warningf("Failed to wait on eventPool, error: %v\n", err)
 			continue
@@ -212,27 +212,27 @@ func (e *EPool) RunMainEventLoop() {
 			//fmt.Println(opCode)
 			//fmt.Println(err)
 			//
-			//fmt.Println(e.mRemoveConnectionHook)
-			//fmt.Println(e.mProcessMessageHook)
+			//fmt.Println(ePool.mRemoveConnectionHook)
+			//fmt.Println(ePool.mProcessMessageHook)
 
 			if err != nil {
-				if e.mRemoveConnectionHook != nil {
-					if err := e.mRemoveConnectionHook(conn); err != nil {
-						glog.Errorf("Failed to remove connection, error: %v\n", e)
+				if ePool.mRemoveConnectionHook != nil {
+					if err := ePool.mRemoveConnectionHook(conn); err != nil {
+						glog.Errorf("Failed to remove connection, error: %v\n", ePool)
 					}
 				}
 				_ = conn.Close()
 				continue
 			}
 
-			if err := e.ProcessWebSocketMessage(conn, msg, byte(opCode)); err != nil {
-				glog.Errorf("Failed to process message, error: %v\n", e)
+			if err := ePool.ProcessWebSocketMessage(conn, msg, byte(opCode)); err != nil {
+				glog.Errorf("Failed to process message, error: %v\n", ePool)
 			}
 		}
 	}
 }
 
-func (e *EPool) ProcessWebSocketMessage(conn net.Conn, msg []byte, opCode byte) error {
+func (ePool *EPool) ProcessWebSocketMessage(conn net.Conn, msg []byte, opCode byte) error {
 	if glog.V(3) {
 		glog.Infof("Process message\n")
 	}
@@ -247,7 +247,7 @@ func (e *EPool) ProcessWebSocketMessage(conn net.Conn, msg []byte, opCode byte) 
 		},
 	}
 
-	e.mPisigContext.ProduceTopic(topic)
+	ePool.mPisigContext.ProduceTopic(topic)
 
 	//if glog.V(3) {
 	//	glog.Infof("Message: %s\n", string(msg))

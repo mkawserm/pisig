@@ -132,7 +132,9 @@ func NewPisigSettings(host string,
 	certFile string,
 	keyFile string,
 	eventPoolQueueSize int,
-	eventPoolWaitTime int) *PisigSettings {
+	eventPoolWaitTime int,
+	topicQueueSize int,
+	topicQueuePoolSize int) *PisigSettings {
 
 	ps := NewEmptyPisigSettings()
 	ps.Host = host
@@ -143,8 +145,8 @@ func NewPisigSettings(host string,
 	ps.EventPoolWaitingTime = eventPoolWaitTime
 	ps.EventPoolQueueSize = eventPoolQueueSize
 
-	ps.TopicQueueSize = 100
-	ps.TopicQueuePoolSize = 100
+	ps.TopicQueueSize = topicQueueSize
+	ps.TopicQueuePoolSize = topicQueuePoolSize
 
 	return ps
 }
@@ -157,5 +159,7 @@ func NewDefaultPisigSettings() *PisigSettings {
 		"",
 		"",
 		100,
-		100)
+		100,
+		100,
+		10)
 }
