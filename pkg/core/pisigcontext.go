@@ -1,26 +1,24 @@
-package context
+package core
 
 import (
 	"github.com/mkawserm/pisig/pkg/cache"
-	"github.com/mkawserm/pisig/pkg/cors"
 	"github.com/mkawserm/pisig/pkg/event"
 	"github.com/mkawserm/pisig/pkg/message"
-	"github.com/mkawserm/pisig/pkg/registry"
 	"github.com/mkawserm/pisig/pkg/settings"
 )
 
 type PisigContext struct {
 	PisigStore           *cache.PisigStore
-	PisigServiceRegistry *registry.PisigServiceRegistry
+	PisigServiceRegistry *PisigServiceRegistry
 
-	CORSOptions   *cors.CORSOptions
+	CORSOptions   *CORSOptions
 	PisigMessage  message.PisigMessage
 	PisigSettings *settings.PisigSettings
 
 	TopicProducerQueue event.TopicQueue
 }
 
-func (pc *PisigContext) GetCORSOptions() *cors.CORSOptions {
+func (pc *PisigContext) GetCORSOptions() *CORSOptions {
 	return pc.CORSOptions
 }
 
@@ -32,7 +30,7 @@ func (pc *PisigContext) GetPisigStore() *cache.PisigStore {
 	return pc.PisigStore
 }
 
-func (pc *PisigContext) GetPisigServiceRegistry() *registry.PisigServiceRegistry {
+func (pc *PisigContext) GetPisigServiceRegistry() *PisigServiceRegistry {
 	return pc.PisigServiceRegistry
 }
 
@@ -48,6 +46,6 @@ func (pc *PisigContext) ProduceTopic(topic event.Topic) {
 func NewPisigContext() *PisigContext {
 	return &PisigContext{
 		PisigStore:           cache.NewPisigStore(),
-		PisigServiceRegistry: registry.NewPisigServiceRegistry(),
+		PisigServiceRegistry: NewPisigServiceRegistry(),
 	}
 }

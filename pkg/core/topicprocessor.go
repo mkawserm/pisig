@@ -3,7 +3,6 @@ package core
 import (
 	"github.com/golang/glog"
 	"github.com/mkawserm/pisig/pkg/event"
-	"github.com/mkawserm/pisig/pkg/service"
 )
 
 type TopicProcessor struct {
@@ -41,7 +40,7 @@ func (tp TopicProcessor) Start() {
 				for i := range topicListenerList {
 					topicListener := topicListenerList[i]
 
-					pisigService, isPisigService := topicListener.(service.PisigService)
+					pisigService, isPisigService := topicListener.(PisigService)
 					if isPisigService {
 						err, _ := pisigService.Process(topic, false)
 						if err != nil {

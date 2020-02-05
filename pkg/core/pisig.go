@@ -3,11 +3,8 @@ package core
 import (
 	"github.com/golang/glog"
 	"github.com/mkawserm/pisig/pkg/cache"
-	"github.com/mkawserm/pisig/pkg/context"
-	"github.com/mkawserm/pisig/pkg/cors"
 	"github.com/mkawserm/pisig/pkg/event"
 	"github.com/mkawserm/pisig/pkg/message"
-	"github.com/mkawserm/pisig/pkg/service"
 	"github.com/mkawserm/pisig/pkg/settings"
 	"net"
 	"net/http"
@@ -16,17 +13,17 @@ import (
 type Pisig struct {
 	mServerMux       *http.ServeMux
 	mEPool           *EPool
-	mPisigContext    *context.PisigContext
+	mPisigContext    *PisigContext
 	mTopicDispatcher *TopicDispatcher
 
 	mMiddlewareViewList []HTTPMiddlewareView
 }
 
-func (p *Pisig) CORSOptions() *cors.CORSOptions {
+func (p *Pisig) CORSOptions() *CORSOptions {
 	return p.mPisigContext.GetCORSOptions()
 }
 
-func (p *Pisig) PisigContext() *context.PisigContext {
+func (p *Pisig) PisigContext() *PisigContext {
 	return p.mPisigContext
 }
 
@@ -50,7 +47,7 @@ func (p *Pisig) GetTopicListenerList(topicName string) []interface{} {
 	return p.mPisigContext.GetPisigServiceRegistry().GetTopicListenerList(topicName)
 }
 
-func (p *Pisig) AddService(topicNameList []string, pisigService service.PisigService) bool {
+func (p *Pisig) AddService(topicNameList []string, pisigService PisigService) bool {
 	added, err := p.mPisigContext.PisigServiceRegistry.AddService(pisigService)
 	if err != nil {
 		glog.Errorf("Error: %v", err)
@@ -61,20 +58,7 @@ func (p *Pisig) AddService(topicNameList []string, pisigService service.PisigSer
 		for _, topicName := range topicNameList {
 			p.mPisigContext.PisigServiceRegistry.AddTopicListener(topicName, pisigService)
 		}
-
-		group := p.mPisigContext.GetPisigSettings().GetMap(pisigService.GroupName())
-
-		if group != nil {
-			if serviceSettingsMap, ok := group[pisigService.ServiceName()]; ok {
-				if serviceSettings, ok := serviceSettingsMap.(map[string]interface{}); ok {
-					if err, ok := pisigService.SetSettings(serviceSettings); !ok {
-						glog.Errorf("%v\n", err)
-					}
-				}
-			}
-		}
-
-		pisigService.SetTopicProducerHandler(p.ProduceTopic)
+		pisigService.SetPisig(p)
 		return true
 	}
 
@@ -200,9 +184,9 @@ func NewPisig(args ...interface{}) *Pisig {
 	pisig.mServerMux = &http.ServeMux{}
 
 	var pisigSettings *settings.PisigSettings
-	var corsOptions *cors.CORSOptions
+	var corsOptions *CORSOptions
 	var pisigMessage message.PisigMessage
-	var pisigContext *context.PisigContext
+	var pisigContext *PisigContext
 
 	for _, val := range args {
 		if glog.V(3) {
@@ -210,12 +194,12 @@ func NewPisig(args ...interface{}) *Pisig {
 		}
 		switch val.(type) {
 
-		case *context.PisigContext:
-			pisigContext = val.(*context.PisigContext)
+		case *PisigContext:
+			pisigContext = val.(*PisigContext)
 		case *settings.PisigSettings:
 			pisigSettings = val.(*settings.PisigSettings)
-		case *cors.CORSOptions:
-			corsOptions = val.(*cors.CORSOptions)
+		case *CORSOptions:
+			corsOptions = val.(*CORSOptions)
 		case message.PisigMessage:
 			pisigMessage = val.(message.PisigMessage)
 		default:
@@ -245,7 +229,7 @@ func NewPisig(args ...interface{}) *Pisig {
 
 	if pisigSettings != nil && corsOptions != nil && pisigMessage != nil {
 
-		pisigContext := context.NewPisigContext()
+		pisigContext := NewPisigContext()
 		pisigContext.CORSOptions = corsOptions
 		pisigContext.PisigSettings = pisigSettings
 
@@ -274,7 +258,7 @@ func NewPisig(args ...interface{}) *Pisig {
 	return nil
 }
 
-func NewPisigSimple(corsOptions *cors.CORSOptions,
+func NewPisigSimple(corsOptions *CORSOptions,
 	pisigSettings *settings.PisigSettings,
 	pisigResponse message.PisigMessage) *Pisig {
 	return NewPisig(corsOptions, pisigSettings, pisigResponse)

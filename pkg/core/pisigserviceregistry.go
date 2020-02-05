@@ -1,8 +1,7 @@
-package registry
+package core
 
 import (
 	"errors"
-	"github.com/mkawserm/pisig/pkg/service"
 	"sort"
 	"sync"
 )
@@ -32,7 +31,7 @@ func (psr *PisigServiceRegistry) GetTopicListenerList(topicName string) []interf
 	return make([]interface{}, 0)
 }
 
-func (psr *PisigServiceRegistry) AddTopicListener(topicName string, pisigService service.PisigService) {
+func (psr *PisigServiceRegistry) AddTopicListener(topicName string, pisigService PisigService) {
 	psr.mRWLock.RLock()
 	defer psr.mRWLock.RUnlock()
 
@@ -90,7 +89,7 @@ func (psr *PisigServiceRegistry) IsServiceExistsInList(serviceName string) bool 
 	return false
 }
 
-func (psr *PisigServiceRegistry) AddService(pisigService service.PisigService) (bool, error) {
+func (psr *PisigServiceRegistry) AddService(pisigService PisigService) (bool, error) {
 	groupExists := false
 
 	if psr.IsServiceExistsInList(pisigService.ServiceName()) {
@@ -143,7 +142,7 @@ func (psr *PisigServiceRegistry) IsServiceExists(groupName string, serviceName s
 	return true
 }
 
-func (psr *PisigServiceRegistry) GetService(groupName string, serviceName string) (service.PisigService, error) {
+func (psr *PisigServiceRegistry) GetService(groupName string, serviceName string) (PisigService, error) {
 	psr.mRWLock.RLock()
 	defer psr.mRWLock.RUnlock()
 
@@ -159,7 +158,7 @@ func (psr *PisigServiceRegistry) GetService(groupName string, serviceName string
 		return nil, errors.New("service does not exists")
 	}
 
-	return s.(service.PisigService), nil
+	return s.(PisigService), nil
 }
 
 func NewPisigServiceRegistry() *PisigServiceRegistry {

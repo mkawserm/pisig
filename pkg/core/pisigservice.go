@@ -1,13 +1,11 @@
-package service
+package core
 
 import (
 	"github.com/mkawserm/pisig/pkg/event"
 )
 
 type PisigService interface {
-	SetSettings(settings map[string]interface{}) (error, bool)
-	UpdateSettings(settings map[string]interface{}) (error, bool)
-	SetTopicProducerHandler(func(topic event.Topic))
+	SetPisig(pisig *Pisig)
 
 	GroupName() string
 	ServiceName() string

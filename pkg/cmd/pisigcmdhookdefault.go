@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/golang/glog"
 	"github.com/mkawserm/pisig/pkg/core"
-	"github.com/mkawserm/pisig/pkg/cors"
 	"github.com/mkawserm/pisig/pkg/message"
 	"github.com/mkawserm/pisig/pkg/settings"
 	"github.com/mkawserm/pisig/pkg/view"
@@ -40,7 +39,7 @@ func (dph *PisigCMDHookDefault) SetupCMD(pisigCMD *PisigCMD, pisigMessage messag
 		Short: "run pisig http server",
 		Run: func(cmd *cobra.Command, args []string) {
 
-			corsOptions := &cors.CORSOptions{
+			corsOptions := &core.CORSOptions{
 				AllowAllOrigins:  true,
 				AllowCredentials: true,
 				AllowMethods:     []string{"GET", "POST", "OPTIONS", "DELETE"},

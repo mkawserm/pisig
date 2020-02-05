@@ -3,7 +3,6 @@ package core
 import (
 	"github.com/gobwas/ws/wsutil"
 	"github.com/golang/glog"
-	"github.com/mkawserm/pisig/pkg/context"
 	"github.com/mkawserm/pisig/pkg/event"
 	"golang.org/x/sys/unix"
 	"net"
@@ -16,7 +15,7 @@ import (
 type EPoolRemoveConnectionHook func(conn net.Conn) error
 
 type EPool struct {
-	mPisigContext   *context.PisigContext
+	mPisigContext   *PisigContext
 	mFd             int
 	mConnectionMap  map[int]net.Conn
 	mEventQueueSize int
@@ -27,7 +26,7 @@ type EPool struct {
 	mRWLock *sync.RWMutex
 }
 
-func NewEPool(pisigContext *context.PisigContext,
+func NewEPool(pisigContext *PisigContext,
 	removeConnectionHook EPoolRemoveConnectionHook,
 ) (*EPool, error) {
 	fd, err := unix.EpollCreate1(0)
