@@ -5,11 +5,13 @@ import (
 	"github.com/mkawserm/pisig/pkg/cors"
 	"github.com/mkawserm/pisig/pkg/event"
 	"github.com/mkawserm/pisig/pkg/message"
+	"github.com/mkawserm/pisig/pkg/registry"
 	"github.com/mkawserm/pisig/pkg/settings"
 )
 
 type PisigContext struct {
-	PisigStore *cache.PisigStore
+	PisigStore           *cache.PisigStore
+	PisigServiceRegistry *registry.PisigServiceRegistry
 
 	CORSOptions   *cors.CORSOptions
 	PisigMessage  message.PisigMessage
@@ -28,6 +30,10 @@ func (pc *PisigContext) GetPisigSettings() *settings.PisigSettings {
 
 func (pc *PisigContext) GetPisigStore() *cache.PisigStore {
 	return pc.PisigStore
+}
+
+func (pc *PisigContext) GetPisigServiceRegistry() *registry.PisigServiceRegistry {
+	return pc.PisigServiceRegistry
 }
 
 func (pc *PisigContext) GetPisigMessage() message.PisigMessage {
