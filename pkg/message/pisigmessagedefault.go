@@ -11,6 +11,10 @@ func (dpm *PisigMessageDefault) GetStatusCode(int) []byte {
 	return []byte{}
 }
 
+func (dpm *PisigMessageDefault) HTTP200() []byte {
+	return []byte(`{"data": null, "errors": [{"message": "PISIG200", "code": 200}]}`)
+}
+
 func (dpm *PisigMessageDefault) HTTP404() []byte {
 	return []byte(`{"data": null, "errors": [{"message": "PISIG404", "code": 404}]}`)
 }
