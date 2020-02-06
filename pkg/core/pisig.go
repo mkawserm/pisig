@@ -76,7 +76,7 @@ func (p *Pisig) SendMessageToGroup(groupId string, message []byte) {
 }
 
 func (p *Pisig) ProduceTopic(topic event.Topic) {
-	p.mPisigContext.TopicProducerQueue <- topic
+	p.mPisigContext.TopicQueue <- topic
 }
 
 func (p *Pisig) GetTopicListenerList(topicName string) []interface{} {
@@ -272,9 +272,9 @@ func NewPisig(args ...interface{}) *Pisig {
 
 	if pisigContext != nil {
 		pisig.mPisigContext = pisigContext
-		pisig.mPisigContext.TopicProducerQueue = make(event.TopicQueue,
+		pisig.mPisigContext.TopicQueue = make(event.TopicQueue,
 			pisigContext.GetPisigSettings().TopicQueueSize)
-		pisig.mTopicDispatcher = NewTopicDispatcher(pisig, pisig.mPisigContext.TopicProducerQueue)
+		pisig.mTopicDispatcher = NewTopicDispatcher(pisig, pisig.mPisigContext.TopicQueue)
 
 		ePool, err := NewEPool(pisig.mPisigContext, pisig.hookRemoveWebSocketConnection)
 
@@ -308,9 +308,9 @@ func NewPisig(args ...interface{}) *Pisig {
 		}
 		pisig.mEPool = ePool
 
-		pisig.mPisigContext.TopicProducerQueue = make(event.TopicQueue,
+		pisig.mPisigContext.TopicQueue = make(event.TopicQueue,
 			pisigContext.GetPisigSettings().TopicQueueSize)
-		pisig.mTopicDispatcher = NewTopicDispatcher(pisig, pisig.mPisigContext.TopicProducerQueue)
+		pisig.mTopicDispatcher = NewTopicDispatcher(pisig, pisig.mPisigContext.TopicQueue)
 
 		if glog.V(3) {
 			glog.Infof("New Pisig instance created")

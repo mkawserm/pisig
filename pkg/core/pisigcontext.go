@@ -18,7 +18,7 @@ type PisigContext struct {
 
 	OnlineUserStore storage.OnlineUserStore
 
-	TopicProducerQueue event.TopicQueue //will be initialized during pisig instance creation
+	TopicQueue event.TopicQueue //will be initialized during pisig instance creation
 }
 
 func (pc *PisigContext) GetOnlineUserStore() storage.OnlineUserStore {
@@ -46,7 +46,7 @@ func (pc *PisigContext) GetPisigMessage() message.PisigMessage {
 }
 
 func (pc *PisigContext) ProduceTopic(topic event.Topic) {
-	pc.TopicProducerQueue <- topic
+	pc.TopicQueue <- topic
 }
 
 // Create new PisigContext
