@@ -24,6 +24,7 @@ func (p *Pisig) PisigContext() *PisigContext {
 	return p.mPisigContext
 }
 
+// Send message to all active websocket connection
 func (p *Pisig) SendMessageToAll(message []byte) {
 	for _, conn := range p.mEPool.GetConnectionSlice() {
 		err := wsutil.WriteServerText(conn, message)
@@ -31,6 +32,47 @@ func (p *Pisig) SendMessageToAll(message []byte) {
 			glog.Infof("%v\n", err)
 		}
 	}
+}
+
+// Send message to the specific user active websocket connection
+func (p *Pisig) SendMessageToUser(uniqueId string, message []byte) {
+	if p.mPisigContext.OnlineUserStore == nil {
+		return
+	}
+
+	socketIdList := p.mPisigContext.OnlineUserStore.GetSocketIdListFromUniqueId(uniqueId)
+
+	for _, socketId := range socketIdList {
+		conn, ok := p.mEPool.GetConnection(socketId)
+		if conn == nil || !ok {
+			continue
+		}
+		err := wsutil.WriteServerText(conn, message)
+		if err != nil {
+			glog.Infof("%v\n", err)
+		}
+	}
+}
+
+// Send message to the specific group of active websocket connection
+func (p *Pisig) SendMessageToGroup(groupId string, message []byte) {
+	if p.mPisigContext.OnlineUserStore == nil {
+		return
+	}
+
+	socketIdList := p.mPisigContext.OnlineUserStore.GetSocketIdListFromGroupId(groupId)
+
+	for _, socketId := range socketIdList {
+		conn, ok := p.mEPool.GetConnection(socketId)
+		if conn == nil || !ok {
+			continue
+		}
+		err := wsutil.WriteServerText(conn, message)
+		if err != nil {
+			glog.Infof("%v\n", err)
+		}
+	}
+
 }
 
 func (p *Pisig) ProduceTopic(topic event.Topic) {
@@ -122,6 +164,22 @@ func (p *Pisig) AddOnlineUser(conn net.Conn, uniqueId string, groupId string, da
 	return p.mPisigContext.OnlineUserStore.AddUser(uniqueId, groupId, socketId, data)
 }
 
+func (p *Pisig) GetTotalOnlineWebSocketConnection() int {
+	return p.mEPool.TotalActiveConnections()
+}
+
+func (p *Pisig) GetTotalOnlineWSConnection() int {
+	return p.mEPool.TotalActiveConnections()
+}
+
+func (p *Pisig) GetOnlineSocketIdList() []int {
+	return p.mEPool.GetConnectionIdSlice()
+}
+
+func (p *Pisig) AddWSConnection(conn net.Conn) bool {
+	return p.AddWebSocketConnection(conn)
+}
+
 func (p *Pisig) AddWebSocketConnection(conn net.Conn) bool {
 	if glog.V(3) {
 		glog.Infof("Adding connection\n")
@@ -140,26 +198,7 @@ func (p *Pisig) AddWebSocketConnection(conn net.Conn) bool {
 	return true
 }
 
-func (p *Pisig) RemoveWebSocketConnection(conn net.Conn) bool {
-	if glog.V(3) {
-		glog.Infof("Removing connection\n")
-	}
-
-	//err := p.mEPool.RemoveConnection(conn)
-	//
-	//if err != nil {
-	//	glog.Errorf("Failed to remove connection - %v \n",err)
-	//	return false
-	//}
-	//
-	//if glog.V(3) {
-	//	glog.Infof("Connection removed \n")
-	//}
-
-	return true
-}
-
-func (p *Pisig) hookRemoveConnection(conn net.Conn) error {
+func (p *Pisig) hookRemoveWebSocketConnection(conn net.Conn) error {
 	if glog.V(3) {
 		glog.Infof("Removing connection\n")
 	}
@@ -233,7 +272,7 @@ func NewPisig(args ...interface{}) *Pisig {
 			pisigContext.GetPisigSettings().TopicQueueSize)
 		pisig.mTopicDispatcher = NewTopicDispatcher(pisig, pisig.mPisigContext.TopicProducerQueue)
 
-		ePool, err := NewEPool(pisig.mPisigContext, pisig.hookRemoveConnection)
+		ePool, err := NewEPool(pisig.mPisigContext, pisig.hookRemoveWebSocketConnection)
 
 		if err != nil {
 			panic(err)
@@ -257,7 +296,7 @@ func NewPisig(args ...interface{}) *Pisig {
 		pisigContext.PisigMessage = pisigMessage
 		pisig.mPisigContext = pisigContext
 
-		ePool, err := NewEPool(pisig.mPisigContext, pisig.hookRemoveConnection)
+		ePool, err := NewEPool(pisig.mPisigContext, pisig.hookRemoveWebSocketConnection)
 
 		if err != nil {
 			panic(err)
