@@ -7,10 +7,10 @@ type OnlineUserStore interface {
 	GetUniqueIdFromSocketId(socketId int) string
 	GetSocketIdListFromUniqueId(uniqueId string) []int
 
-	GetDataFromUniqueId(uniqueId string) interface{}
+	GetDataFromSocketId(socketId int) interface{}
 
-	GetGroupIdFromUniqueId(uniqueId string) string
-	GetUniqueIdListFromGroupId(groupId string) []string
+	GetGroupIdFromSocketId(socketId int) string
+	GetSocketIdListFromGroupId(groupId string) []int
 
 	GetGroupIdList() []string
 	GetUniqueIdList() []string

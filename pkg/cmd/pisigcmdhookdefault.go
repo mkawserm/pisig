@@ -6,6 +6,7 @@ import (
 	"github.com/mkawserm/pisig/pkg/core"
 	"github.com/mkawserm/pisig/pkg/message"
 	"github.com/mkawserm/pisig/pkg/settings"
+	"github.com/mkawserm/pisig/pkg/storage"
 	"github.com/mkawserm/pisig/pkg/view"
 	"github.com/spf13/cobra"
 )
@@ -47,8 +48,12 @@ func (dph *PisigCMDHookDefault) SetupCMD(pisigCMD *PisigCMD, pisigMessage messag
 			}
 
 			pisigSettings := settings.NewDefaultPisigSettings()
+			onlineUserStore := storage.NewOnlineUserMemoryStore()
 
-			pisig := core.NewPisigSimple(corsOptions, pisigSettings, pisigMessage)
+			pisig := core.NewPisigSimple(corsOptions,
+				pisigSettings,
+				pisigMessage,
+				onlineUserStore)
 
 			if glog.V(3) {
 				glog.Infof("Registering all views")

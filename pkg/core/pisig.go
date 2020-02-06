@@ -7,6 +7,7 @@ import (
 	"github.com/mkawserm/pisig/pkg/event"
 	"github.com/mkawserm/pisig/pkg/message"
 	"github.com/mkawserm/pisig/pkg/settings"
+	"github.com/mkawserm/pisig/pkg/storage"
 	"net"
 	"net/http"
 )
@@ -196,6 +197,7 @@ func NewPisig(args ...interface{}) *Pisig {
 	var pisigSettings *settings.PisigSettings
 	var corsOptions *CORSOptions
 	var pisigMessage message.PisigMessage
+	var onlineUserStore storage.OnlineUserStore
 	var pisigContext *PisigContext
 
 	for _, val := range args {
@@ -206,12 +208,15 @@ func NewPisig(args ...interface{}) *Pisig {
 
 		case *PisigContext:
 			pisigContext = val.(*PisigContext)
+			break
 		case *settings.PisigSettings:
 			pisigSettings = val.(*settings.PisigSettings)
 		case *CORSOptions:
 			corsOptions = val.(*CORSOptions)
 		case message.PisigMessage:
 			pisigMessage = val.(message.PisigMessage)
+		case storage.OnlineUserStore:
+			onlineUserStore = val.(storage.OnlineUserStore)
 		default:
 			break
 		}
@@ -242,6 +247,7 @@ func NewPisig(args ...interface{}) *Pisig {
 		pisigContext := NewPisigContext()
 		pisigContext.CORSOptions = corsOptions
 		pisigContext.PisigSettings = pisigSettings
+		pisigContext.OnlineUserStore = onlineUserStore
 
 		pisigContext.PisigMessage = pisigMessage
 		pisig.mPisigContext = pisigContext
@@ -270,6 +276,7 @@ func NewPisig(args ...interface{}) *Pisig {
 
 func NewPisigSimple(corsOptions *CORSOptions,
 	pisigSettings *settings.PisigSettings,
-	pisigResponse message.PisigMessage) *Pisig {
-	return NewPisig(corsOptions, pisigSettings, pisigResponse)
+	pisigResponse message.PisigMessage,
+	onlineUserStore storage.OnlineUserStore) *Pisig {
+	return NewPisig(corsOptions, pisigSettings, pisigResponse, onlineUserStore)
 }
