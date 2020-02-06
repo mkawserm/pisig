@@ -3,7 +3,6 @@ package core
 import (
 	"github.com/gobwas/ws/wsutil"
 	"github.com/golang/glog"
-	"github.com/mkawserm/pisig/pkg/cache"
 	"github.com/mkawserm/pisig/pkg/event"
 	"github.com/mkawserm/pisig/pkg/message"
 	"github.com/mkawserm/pisig/pkg/settings"
@@ -21,24 +20,8 @@ type Pisig struct {
 	mMiddlewareViewList []HTTPMiddlewareView
 }
 
-func (p *Pisig) CORSOptions() *CORSOptions {
-	return p.mPisigContext.GetCORSOptions()
-}
-
 func (p *Pisig) PisigContext() *PisigContext {
 	return p.mPisigContext
-}
-
-func (p *Pisig) PisigMessage() message.PisigMessage {
-	return p.mPisigContext.GetPisigMessage()
-}
-
-func (p *Pisig) PisigSettings() *settings.PisigSettings {
-	return p.mPisigContext.GetPisigSettings()
-}
-
-func (p *Pisig) PisigStore() *cache.PisigStore {
-	return p.mPisigContext.GetPisigStore()
 }
 
 func (p *Pisig) SendMessageToAll(message []byte) {
@@ -107,25 +90,36 @@ func (p *Pisig) RunHTTPServer() {
 }
 
 func (p *Pisig) runHTTPServer() {
-	if p.PisigSettings().EnableTLS {
+	if p.mPisigContext.PisigSettings.EnableTLS {
 		if glog.V(1) {
-			glog.Infoln("Server is listening at: https://" + p.PisigSettings().Host + ":" + p.PisigSettings().Port)
+			glog.Infoln("Server is listening at: https://" + p.mPisigContext.PisigSettings.Host +
+				":" + p.mPisigContext.PisigSettings.Port)
 		}
-		err := http.ListenAndServeTLS(p.PisigSettings().Host+":"+p.PisigSettings().Port,
-			p.PisigSettings().CertFile,
-			p.PisigSettings().KeyFile, p.mServerMux)
+		err := http.ListenAndServeTLS(p.mPisigContext.PisigSettings.Host+":"+p.mPisigContext.PisigSettings.Port,
+			p.mPisigContext.PisigSettings.CertFile,
+			p.mPisigContext.PisigSettings.KeyFile, p.mServerMux)
 		if err != nil {
 			glog.Errorln("Server error: ", err)
 		}
 	} else {
 		if glog.V(1) {
-			glog.Infoln("Server is listening at: http://" + p.PisigSettings().Host + ":" + p.PisigSettings().Port)
+			glog.Infoln("Server is listening at: http://" + p.mPisigContext.PisigSettings.Host +
+				":" + p.mPisigContext.PisigSettings.Port)
 		}
-		err := http.ListenAndServe(p.PisigSettings().Host+":"+p.PisigSettings().Port, p.mServerMux)
+		err := http.ListenAndServe(p.mPisigContext.PisigSettings.Host+
+			":"+p.mPisigContext.PisigSettings.Port, p.mServerMux)
 		if err != nil {
 			glog.Errorln("Server error: ", err)
 		}
 	}
+}
+
+func (p *Pisig) AddOnlineUser(conn net.Conn, uniqueId string, groupId string, data interface{}) bool {
+	if p.mPisigContext.OnlineUserStore == nil {
+		return false
+	}
+	socketId := WebsocketFileDescriptor(conn)
+	return p.mPisigContext.OnlineUserStore.AddUser(uniqueId, groupId, socketId, data)
 }
 
 func (p *Pisig) AddWebSocketConnection(conn net.Conn) bool {
@@ -171,6 +165,10 @@ func (p *Pisig) hookRemoveConnection(conn net.Conn) error {
 	}
 
 	// CLEAN UP RESOURCES
+	if p.mPisigContext.OnlineUserStore != nil {
+		socketId := WebsocketFileDescriptor(conn)
+		p.mPisigContext.OnlineUserStore.RemoveUser(socketId)
+	}
 
 	err := p.mEPool.RemoveConnection(conn)
 

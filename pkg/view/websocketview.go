@@ -162,7 +162,7 @@ func (v *WebSocketView) Process(pisig *core.Pisig) http.HandlerFunc {
 			glog.Infof("Checking CORS")
 		}
 
-		if !v.pisig.CORSOptions().CROSCheckAllowNext(writer, request) {
+		if !v.pisig.PisigContext().CORSOptions.CROSCheckAllowNext(writer, request) {
 			if glog.V(1) {
 				glog.Infof("CORS block!!!\n")
 			}
@@ -192,33 +192,33 @@ func (v *WebSocketView) Process(pisig *core.Pisig) http.HandlerFunc {
 
 		if request.Method != http.MethodGet {
 			writer.Header().Add("Content-Type", "application/json; charset=utf-8")
-			_, _ = writer.Write(v.pisig.PisigMessage().HTTP400())
+			_, _ = writer.Write(v.pisig.PisigContext().PisigMessage.HTTP400())
 			return
 		}
 
 		if request.ProtoMajor < 1 || (request.ProtoMajor == 1 && request.ProtoMinor < 1) {
 			writer.Header().Add("Content-Type", "application/json; charset=utf-8")
-			_, _ = writer.Write(v.pisig.PisigMessage().HTTP400())
+			_, _ = writer.Write(v.pisig.PisigContext().PisigMessage.HTTP400())
 			return
 		}
 
 		if request.Host == "" {
 			writer.Header().Add("Content-Type", "application/json; charset=utf-8")
-			_, _ = writer.Write(v.pisig.PisigMessage().HTTP400())
+			_, _ = writer.Write(v.pisig.PisigContext().PisigMessage.HTTP400())
 			return
 		}
 
 		if u := httpGetHeader(request.Header, headerUpgradeCanonical); u != "websocket" &&
 			!StrEqualFold(u, "websocket") {
 			writer.Header().Add("Content-Type", "application/json; charset=utf-8")
-			_, _ = writer.Write(v.pisig.PisigMessage().HTTP400())
+			_, _ = writer.Write(v.pisig.PisigContext().PisigMessage.HTTP400())
 			return
 		}
 
 		if c := httpGetHeader(request.Header, headerConnectionCanonical); c != "Upgrade" &&
 			!StrHasToken(c, "upgrade") {
 			writer.Header().Add("Content-Type", "application/json; charset=utf-8")
-			_, _ = writer.Write(v.pisig.PisigMessage().HTTP400())
+			_, _ = writer.Write(v.pisig.PisigContext().PisigMessage.HTTP400())
 			return
 		}
 
@@ -227,14 +227,14 @@ func (v *WebSocketView) Process(pisig *core.Pisig) http.HandlerFunc {
 		if err != nil {
 			glog.Errorf("Failed to do upgrade handshake - %v\n", err)
 			writer.Header().Add("Content-Type", "application/json; charset=utf-8")
-			_, _ = writer.Write(v.pisig.PisigMessage().HTTP400())
+			_, _ = writer.Write(v.pisig.PisigContext().PisigMessage.HTTP400())
 			return
 		}
 
 		if !v.pisig.AddWebSocketConnection(conn) {
 			glog.Errorf("Failed to add connection\n")
 			writer.Header().Add("Content-Type", "application/json; charset=utf-8")
-			_, _ = writer.Write(v.pisig.PisigMessage().HTTP400())
+			_, _ = writer.Write(v.pisig.PisigContext().PisigMessage.HTTP400())
 			_ = conn.Close()
 			return
 		}

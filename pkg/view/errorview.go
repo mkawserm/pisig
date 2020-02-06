@@ -33,7 +33,7 @@ func (errorView *ErrorView) Process(pisig *core.Pisig) http.HandlerFunc {
 			glog.Infof("Checking CORS")
 		}
 
-		if !errorView.pisig.CORSOptions().CROSCheckAllowNext(writer, request) {
+		if !errorView.pisig.PisigContext().CORSOptions.CROSCheckAllowNext(writer, request) {
 			if glog.V(1) {
 				glog.Infof("CORS block!!!\n")
 			}
@@ -66,7 +66,7 @@ func (errorView *ErrorView) Process(pisig *core.Pisig) http.HandlerFunc {
 
 		// MAIN LOGIC
 		writer.Header().Add("Content-Type", "application/json; charset=utf-8")
-		_, _ = writer.Write(errorView.pisig.PisigMessage().HTTP404())
+		_, _ = writer.Write(errorView.pisig.PisigContext().PisigMessage.HTTP404())
 		// MAIN LOGIC END
 
 		// BOILERPLATE BEGIN

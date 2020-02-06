@@ -13,11 +13,11 @@ type TopicDispatcher struct {
 }
 
 func NewTopicDispatcher(pisig *Pisig, topicQueue event.TopicQueue) *TopicDispatcher {
-	topicQueuePool := make(event.TopicQueuePool, pisig.PisigSettings().TopicQueuePoolSize)
+	topicQueuePool := make(event.TopicQueuePool, pisig.PisigContext().PisigSettings.TopicQueuePoolSize)
 
 	return &TopicDispatcher{
 		Pisig:              pisig,
-		TopicQueuePoolSize: pisig.PisigSettings().TopicQueuePoolSize,
+		TopicQueuePoolSize: pisig.PisigContext().PisigSettings.TopicQueuePoolSize,
 		TopicProducerQueue: topicQueue,
 		TopicQueuePool:     topicQueuePool,
 	}
