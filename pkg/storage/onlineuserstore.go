@@ -12,6 +12,9 @@ type OnlineUserStore interface {
 	GetGroupIdFromSocketId(socketId int) string
 	GetSocketIdListFromGroupId(groupId string) []int
 
+	IsGroupExists(groupId string) bool
+	IsUniqueIdExists(uniqueId string) bool
+
 	GetGroupIdList() []string
 	GetUniqueIdList() []string
 

@@ -179,18 +179,44 @@ func (o *OnlineUserMemoryStore) GetSocketIdListFromGroupId(groupId string) []int
 	return []int{}
 }
 
+func (o *OnlineUserMemoryStore) IsUniqueIdExists(uniqueId string) bool {
+	o.mRWMutex.Lock()
+	defer o.mRWMutex.Unlock()
+
+	_, ok := o.mUniqueIdToSocketIdList[uniqueId]
+	return ok
+}
+
+func (o *OnlineUserMemoryStore) IsGroupExists(groupId string) bool {
+	o.mRWMutex.Lock()
+	defer o.mRWMutex.Unlock()
+
+	_, ok := o.mGroupIdToSocketIdList[groupId]
+	return ok
+}
+
 func (o *OnlineUserMemoryStore) GetGroupIdList() []string {
 	o.mRWMutex.Lock()
 	defer o.mRWMutex.Unlock()
 
-	return []string{}
+	var groupIdList []string
+	for groupId := range o.mGroupIdToSocketIdList {
+		groupIdList = append(groupIdList, groupId)
+	}
+
+	return groupIdList
 }
 
 func (o *OnlineUserMemoryStore) GetUniqueIdList() []string {
 	o.mRWMutex.Lock()
 	defer o.mRWMutex.Unlock()
 
-	return []string{}
+	var uniqueIdList []string
+	for uniqueId := range o.mGroupIdToSocketIdList {
+		uniqueIdList = append(uniqueIdList, uniqueId)
+	}
+
+	return uniqueIdList
 }
 
 func (o *OnlineUserMemoryStore) GetTotalGroupId() int {
