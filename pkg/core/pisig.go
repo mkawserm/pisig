@@ -190,13 +190,13 @@ func NewPisig(args ...interface{}) *Pisig {
 	pisig := &Pisig{}
 	pisig.mPisigContext = nil
 	pisig.mEPool = nil
-	pisig.mServerMux = &http.ServeMux{}
 
 	var pisigSettings *settings.PisigSettings
 	var corsOptions *CORSOptions
 	var pisigMessage message.PisigMessage
 	var onlineUserStore storage.OnlineUserStore
 	var pisigContext *PisigContext
+	var serverMux *http.ServeMux
 
 	for _, val := range args {
 		if glog.V(3) {
@@ -206,7 +206,6 @@ func NewPisig(args ...interface{}) *Pisig {
 
 		case *PisigContext:
 			pisigContext = val.(*PisigContext)
-			break
 		case *settings.PisigSettings:
 			pisigSettings = val.(*settings.PisigSettings)
 		case *CORSOptions:
@@ -215,9 +214,17 @@ func NewPisig(args ...interface{}) *Pisig {
 			pisigMessage = val.(message.PisigMessage)
 		case storage.OnlineUserStore:
 			onlineUserStore = val.(storage.OnlineUserStore)
+		case *http.ServeMux:
+			serverMux = val.(*http.ServeMux)
 		default:
 			break
 		}
+	}
+
+	if serverMux == nil {
+		pisig.mServerMux = &http.ServeMux{}
+	} else {
+		pisig.mServerMux = serverMux
 	}
 
 	if pisigContext != nil {
