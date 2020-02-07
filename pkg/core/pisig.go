@@ -83,7 +83,13 @@ func (p *Pisig) GetTopicListenerList(topicName string) []interface{} {
 	return p.mPisigContext.GetPisigServiceRegistry().GetTopicListenerList(topicName)
 }
 
-func (p *Pisig) AddService(topicNameList []string, pisigService PisigService) bool {
+// Publish to the specific topic/channel
+func (p *Pisig) Publish(topic event.Topic) {
+	p.mPisigContext.TopicQueue <- topic
+}
+
+// Subscribe pisig service to the specified topic/channel name list
+func (p *Pisig) Subscribe(topicNameList []string, pisigService PisigService) bool {
 	added, err := p.mPisigContext.PisigServiceRegistry.AddService(pisigService)
 	if err != nil {
 		glog.Errorf("Error: %v", err)
@@ -99,6 +105,10 @@ func (p *Pisig) AddService(topicNameList []string, pisigService PisigService) bo
 	}
 
 	return false
+}
+
+func (p *Pisig) AddService(topicNameList []string, pisigService PisigService) bool {
+	return p.Subscribe(topicNameList, pisigService)
 }
 
 func (p *Pisig) AddView(urlPattern string, view HTTPView) {

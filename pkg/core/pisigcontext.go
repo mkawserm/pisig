@@ -49,6 +49,10 @@ func (pc *PisigContext) ProduceTopic(topic event.Topic) {
 	pc.TopicQueue <- topic
 }
 
+func (pc *PisigContext) Publish(topic event.Topic) {
+	pc.TopicQueue <- topic
+}
+
 // Create new PisigContext
 func NewPisigContext() *PisigContext {
 	return &PisigContext{
