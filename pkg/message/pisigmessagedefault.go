@@ -7,11 +7,11 @@ func (dpm *PisigMessageDefault) Init() {
 
 }
 
-func (dpm *PisigMessageDefault) Get(int) []byte {
+func (dpm *PisigMessageDefault) Get(PisigMessageCode) []byte {
 	return []byte{}
 }
 
-func (dpm *PisigMessageDefault) Set(int, []byte) bool {
+func (dpm *PisigMessageDefault) Set(PisigMessageCode, []byte) bool {
 	return false
 }
 
