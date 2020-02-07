@@ -3,12 +3,16 @@ package message
 type PisigMessageDefault struct {
 }
 
-func (dpm *PisigMessageDefault) InitAllStatusCode() {
+func (dpm *PisigMessageDefault) Init() {
 
 }
 
-func (dpm *PisigMessageDefault) GetStatusCode(int) []byte {
+func (dpm *PisigMessageDefault) Get(int) []byte {
 	return []byte{}
+}
+
+func (dpm *PisigMessageDefault) Set(int, []byte) bool {
+	return false
 }
 
 func (dpm *PisigMessageDefault) HTTP200() []byte {

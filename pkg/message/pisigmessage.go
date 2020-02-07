@@ -1,8 +1,9 @@
 package message
 
 type PisigMessage interface {
-	InitAllStatusCode()
-	GetStatusCode(codeNo int) []byte
+	Init()
+	Get(codeNo int) []byte
+	Set(codeNo int, data []byte) bool
 
 	HTTP200() []byte
 	HTTP404() []byte

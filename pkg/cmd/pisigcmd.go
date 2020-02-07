@@ -74,7 +74,7 @@ func (pc *PisigCMD) Setup() {
 	}
 
 	// INIT ALL STATUS CODE
-	pc.Message.InitAllStatusCode()
+	pc.Message.Init()
 
 	// SETUP CUSTOM CMDS FROM HOOK
 	pc.CMDHook.SetupCMD(pc, pc.Message)
