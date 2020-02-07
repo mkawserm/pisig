@@ -33,7 +33,7 @@ func (dph *PisigCMDHookDefault) AppDescription() string {
 }
 
 func (dph *PisigCMDHookDefault) AppNameLong() string {
-	return core.ConstAppDescription
+	return core.ConstAppNameLong
 }
 
 func (dph *PisigCMDHookDefault) SetupCMD(pisigCMD *PisigCMD, pisigMessage message.PisigMessage) {
@@ -43,7 +43,8 @@ func (dph *PisigCMDHookDefault) SetupCMD(pisigCMD *PisigCMD, pisigMessage messag
 		Run: func(cmd *cobra.Command, args []string) {
 
 			go func() {
-				http.ListenAndServe("0.0.0.0:6060", nil)
+				err := http.ListenAndServe("0.0.0.0:6060", nil)
+				glog.Errorf("%v\n", err)
 			}()
 
 			corsOptions := &core.CORSOptions{
