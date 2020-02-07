@@ -237,7 +237,7 @@ func (ePool *EPool) ProcessWebSocketMessage(conn net.Conn, msg []byte, opCode by
 	}
 
 	topic := event.Topic{
-		Name: "WebSocketEvent",
+		Name: event.WebSocketEventString,
 		Key:  []byte(""),
 		Data: event.WebSocketEvent{
 			Conn:    conn,
@@ -246,7 +246,7 @@ func (ePool *EPool) ProcessWebSocketMessage(conn net.Conn, msg []byte, opCode by
 		},
 	}
 
-	ePool.mPisigContext.ProduceTopic(topic)
+	ePool.mPisigContext.Publish(topic)
 
 	//if glog.V(3) {
 	//	glog.Infof("Message: %s\n", string(msg))
