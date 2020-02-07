@@ -9,7 +9,6 @@ import (
 	"github.com/mkawserm/pisig/pkg/storage"
 	"github.com/mkawserm/pisig/pkg/view"
 	"github.com/spf13/cobra"
-	"log"
 	"net/http"
 	_ "net/http/pprof"
 )
@@ -44,7 +43,7 @@ func (dph *PisigCMDHookDefault) SetupCMD(pisigCMD *PisigCMD, pisigMessage messag
 		Run: func(cmd *cobra.Command, args []string) {
 
 			go func() {
-				log.Println(http.ListenAndServe("0.0.0.0:6060", nil))
+				http.ListenAndServe("0.0.0.0:6060", nil)
 			}()
 
 			corsOptions := &core.CORSOptions{
