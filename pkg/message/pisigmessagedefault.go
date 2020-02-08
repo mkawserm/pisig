@@ -11,10 +11,6 @@ func (dpm *PisigMessageDefault) Get(PisigMessageCode) []byte {
 	return []byte{}
 }
 
-//func (dpm *PisigMessageDefault) Set(PisigMessageCode, []byte) bool {
-//	return false
-//}
-
 func (dpm *PisigMessageDefault) HTTP200() []byte {
 	return []byte(`{"data": null, "errors": [{"message": "PISIG200", "code": 200}]}`)
 }
