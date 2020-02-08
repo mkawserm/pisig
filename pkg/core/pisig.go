@@ -29,7 +29,7 @@ func (p *Pisig) SendMessageToAll(message []byte) {
 	for _, conn := range p.mEPool.GetConnectionSlice() {
 		err := wsutil.WriteServerText(conn, message)
 		if err != nil {
-			glog.Infof("%v\n", err)
+			glog.Errorf("Error - %v\n", err)
 		}
 	}
 }
@@ -49,7 +49,7 @@ func (p *Pisig) SendMessageToUser(uniqueId string, message []byte) {
 		}
 		err := wsutil.WriteServerText(conn, message)
 		if err != nil {
-			glog.Infof("%v\n", err)
+			glog.Errorf("Error - %v\n", err)
 		}
 	}
 }
@@ -69,7 +69,7 @@ func (p *Pisig) SendMessageToGroup(groupId string, message []byte) {
 		}
 		err := wsutil.WriteServerText(conn, message)
 		if err != nil {
-			glog.Infof("%v\n", err)
+			glog.Errorf("Error - %v\n", err)
 		}
 	}
 
@@ -92,7 +92,7 @@ func (p *Pisig) Publish(topic event.Topic) {
 func (p *Pisig) Subscribe(topicNameList []string, pisigService PisigService) bool {
 	added, err := p.mPisigContext.PisigServiceRegistry.AddService(pisigService)
 	if err != nil {
-		glog.Errorf("Error: %v", err)
+		glog.Errorf("Error: %v\n", err)
 		return false
 	}
 
@@ -151,7 +151,7 @@ func (p *Pisig) runHTTPServer() {
 			p.mPisigContext.PisigSettings.CertFile,
 			p.mPisigContext.PisigSettings.KeyFile, p.mServerMux)
 		if err != nil {
-			glog.Errorln("Server error: ", err)
+			glog.Errorf("Server error: %v\n", err)
 		}
 	} else {
 		if glog.V(1) {
@@ -161,7 +161,7 @@ func (p *Pisig) runHTTPServer() {
 		err := http.ListenAndServe(p.mPisigContext.PisigSettings.Host+
 			":"+p.mPisigContext.PisigSettings.Port, p.mServerMux)
 		if err != nil {
-			glog.Errorln("Server error: ", err)
+			glog.Errorf("Server error: %v\n", err)
 		}
 	}
 }
