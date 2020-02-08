@@ -190,6 +190,10 @@ func (p *Pisig) GetOnlineSocketList() []net.Conn {
 	return p.mEPool.GetConnectionSlice()
 }
 
+func (p *Pisig) AddWSConn(conn net.Conn) bool {
+	return p.AddWebSocketConnection(conn)
+}
+
 func (p *Pisig) AddWSConnection(conn net.Conn) bool {
 	return p.AddWebSocketConnection(conn)
 }
