@@ -215,7 +215,15 @@ func (p *Pisig) runWebSocketServer(u *ws.Upgrader) {
 				return
 			}
 
-			p.AddWebSocketConnection(conn)
+			if p.AddWebSocketConnection(conn) {
+				topic := event.Topic{
+					Name: event.WebSocketConnEvent,
+					Data: event.WebSocketConnEventData{
+						SocketId: WebsocketFileDescriptor(conn),
+					},
+				}
+				p.Publish(topic)
+			}
 		}()
 	}
 }

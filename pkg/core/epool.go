@@ -237,12 +237,11 @@ func (ePool *EPool) ProcessWebSocketMessage(conn net.Conn, msg []byte, opCode by
 	}
 
 	topic := event.Topic{
-		Name: event.WebSocketEventString,
-		Key:  []byte(""),
-		Data: event.WebSocketEvent{
-			Conn:    conn,
-			OpCode:  opCode,
-			Message: msg,
+		Name: event.WebSocketEvent,
+		Data: event.WebSocketEventData{
+			SocketId: WebsocketFileDescriptor(conn),
+			OpCode:   opCode,
+			Message:  msg,
 		},
 	}
 

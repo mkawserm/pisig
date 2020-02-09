@@ -1,8 +1,8 @@
 package event
 
-const HTTPEventString = "HTTPEvent"
+const HTTPEvent = "HTTPEvent"
 
-type HTTPEvent struct {
+type HTTPEventData struct {
 	Headers map[string]string
 	Body    []byte
 }
