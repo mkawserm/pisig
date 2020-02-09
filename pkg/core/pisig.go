@@ -1,6 +1,7 @@
 package core
 
 import (
+	"github.com/gobwas/ws"
 	"github.com/gobwas/ws/wsutil"
 	"github.com/golang/glog"
 	"github.com/mkawserm/pisig/pkg/event"
@@ -152,6 +153,7 @@ func (p *Pisig) runHTTPServer() {
 			p.mPisigContext.PisigSettings.KeyFile, p.mServerMux)
 		if err != nil {
 			glog.Errorf("Server error: %v\n", err)
+			panic(err)
 		}
 	} else {
 		if glog.V(1) {
@@ -162,7 +164,59 @@ func (p *Pisig) runHTTPServer() {
 			":"+p.mPisigContext.PisigSettings.Port, p.mServerMux)
 		if err != nil {
 			glog.Errorf("Server error: %v\n", err)
+			panic(err)
 		}
+	}
+}
+
+func (p *Pisig) RunWebSocketServer(u *ws.Upgrader) {
+	if glog.V(1) {
+		glog.Infof("Server starting...\n")
+	}
+
+	p.mEPool.Setup()
+	go p.mEPool.RunMainEventLoop()
+	p.runWebSocketServer(u)
+
+	if glog.V(1) {
+		glog.Infof("Server exited gracefully.\n")
+	}
+}
+
+func (p *Pisig) runWebSocketServer(u *ws.Upgrader) {
+	if glog.V(1) {
+		glog.Infoln("Server is listening at: tcp://" + p.mPisigContext.PisigSettings.Host +
+			":" + p.mPisigContext.PisigSettings.Port)
+	}
+
+	ln, err := net.Listen("tcp", p.mPisigContext.PisigSettings.Host+
+		":"+p.mPisigContext.PisigSettings.Port)
+
+	if err != nil {
+		glog.Errorf("Server error: %v\n", err)
+		panic(err)
+	}
+
+	for {
+		conn, err := ln.Accept()
+		if err != nil {
+			glog.Errorf("%v\n", err)
+			continue
+		}
+
+		go func() {
+			_, err = u.Upgrade(conn)
+			if err != nil {
+				glog.Errorf("upgrade error: %v\n", err)
+
+				err1 := conn.Close()
+				glog.Errorf("Connection closing error: %v\n", err1)
+
+				return
+			}
+
+			p.AddWebSocketConnection(conn)
+		}()
 	}
 }
 
