@@ -228,11 +228,10 @@ func (p *Pisig) runWebSocketServer(u *ws.Upgrader) {
 	}
 }
 
-func (p *Pisig) AddOnlineUser(conn net.Conn, uniqueId string, groupId string, data interface{}) bool {
+func (p *Pisig) AddOnlineUser(uniqueId string, groupId string, socketId int, data interface{}) bool {
 	if p.mPisigContext.OnlineUserStore == nil {
 		return false
 	}
-	socketId := WebsocketFileDescriptor(conn)
 	return p.mPisigContext.OnlineUserStore.AddUser(uniqueId, groupId, socketId, data)
 }
 
