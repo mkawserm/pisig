@@ -277,6 +277,26 @@ func (p *Pisig) AddWebSocketConnection(conn net.Conn) bool {
 	return true
 }
 
+func (p *Pisig) GetWSConn(sockedId int) net.Conn {
+	conn, found := p.mEPool.GetConnection(sockedId)
+
+	if found {
+		return conn
+	}
+
+	return nil
+}
+
+func (p *Pisig) GetWebSocketConnection(sockedId int) net.Conn {
+	conn, found := p.mEPool.GetConnection(sockedId)
+
+	if found {
+		return conn
+	}
+
+	return nil
+}
+
 func (p *Pisig) hookRemoveWebSocketConnection(conn net.Conn) error {
 	if glog.V(3) {
 		glog.Infof("Removing connection\n")
