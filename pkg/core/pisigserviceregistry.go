@@ -15,7 +15,25 @@ type PisigServiceRegistry struct {
 	mGroupList   []string
 	mServiceList []string
 
+	mDefaultServiceMap map[string]string
+
 	mRWLock *sync.RWMutex
+}
+
+func (psr *PisigServiceRegistry) SetDefaultServiceName(groupName, serviceName string) {
+	psr.mRWLock.Lock()
+	defer psr.mRWLock.Unlock()
+
+	psr.mDefaultServiceMap[groupName] = serviceName
+}
+
+func (psr *PisigServiceRegistry) GetDefaultServiceName(groupName string) (string, bool) {
+	psr.mRWLock.RLock()
+	defer psr.mRWLock.RUnlock()
+
+	val, ok := psr.mDefaultServiceMap[groupName]
+
+	return val, ok
 }
 
 func (psr *PisigServiceRegistry) GetTopicListenerList(topicName string) []interface{} {
@@ -32,8 +50,8 @@ func (psr *PisigServiceRegistry) GetTopicListenerList(topicName string) []interf
 }
 
 func (psr *PisigServiceRegistry) AddTopicListener(topicName string, pisigService PisigService) {
-	psr.mRWLock.RLock()
-	defer psr.mRWLock.RUnlock()
+	psr.mRWLock.Lock()
+	defer psr.mRWLock.Unlock()
 
 	val, ok := psr.mTopicListener[topicName]
 
@@ -58,10 +76,16 @@ func (psr *PisigServiceRegistry) AddTopicListener(topicName string, pisigService
 }
 
 func (psr *PisigServiceRegistry) GetGroupList() []string {
+	psr.mRWLock.RLock()
+	defer psr.mRWLock.RUnlock()
+
 	return psr.mGroupList
 }
 
 func (psr *PisigServiceRegistry) GetServiceList() []string {
+	psr.mRWLock.RLock()
+	defer psr.mRWLock.RUnlock()
+
 	return psr.mServiceList
 }
 
@@ -100,8 +124,8 @@ func (psr *PisigServiceRegistry) AddService(pisigService PisigService) (bool, er
 		groupExists = true
 	}
 
-	psr.mRWLock.RLock()
-	defer psr.mRWLock.RUnlock()
+	psr.mRWLock.Lock()
+	defer psr.mRWLock.Unlock()
 
 	value, ok := psr.mStore[pisigService.GroupName()]
 
@@ -163,8 +187,9 @@ func (psr *PisigServiceRegistry) GetService(groupName string, serviceName string
 
 func NewPisigServiceRegistry() *PisigServiceRegistry {
 	return &PisigServiceRegistry{
-		mStore:         make(map[string]InterfaceMap),
-		mTopicListener: make(map[string][]interface{}),
-		mRWLock:        &sync.RWMutex{},
+		mStore:             make(map[string]InterfaceMap),
+		mTopicListener:     make(map[string][]interface{}),
+		mDefaultServiceMap: make(map[string]string),
+		mRWLock:            &sync.RWMutex{},
 	}
 }
