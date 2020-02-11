@@ -1,6 +1,9 @@
 package event
 
-import "reflect"
+import (
+	"reflect"
+	"unsafe"
+)
 
 //type Protocol int
 //
@@ -39,5 +42,42 @@ func (t *Topic) DataType() string {
 	return reflect.TypeOf(t.Data).String()
 }
 
+func (t *Topic) GetNameString() string {
+	return t.Name
+}
+
+func (t *Topic) GetNameBytes() []byte {
+	return UnsafeBytes(t.Name)
+}
+
+func (t *Topic) GetKeyString() string {
+	return UnsafeString(t.Key)
+}
+
+func (t *Topic) GetKeyBytes() []byte {
+	return t.Key
+}
+
+func (t *Topic) GetDataBytes() []byte {
+	return t.Data.([]byte)
+}
+
 type TopicQueue chan Topic
 type TopicQueuePool chan TopicQueue
+
+func UnsafeString(bytes []byte) string {
+	hdr := *(*reflect.SliceHeader)(unsafe.Pointer(&bytes))
+	return *(*string)(unsafe.Pointer(&reflect.StringHeader{
+		Data: hdr.Data,
+		Len:  hdr.Len,
+	}))
+}
+
+func UnsafeBytes(str string) []byte {
+	hdr := *(*reflect.StringHeader)(unsafe.Pointer(&str))
+	return *(*[]byte)(unsafe.Pointer(&reflect.SliceHeader{
+		Data: hdr.Data,
+		Len:  hdr.Len,
+		Cap:  hdr.Len,
+	}))
+}
