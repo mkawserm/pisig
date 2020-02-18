@@ -34,7 +34,7 @@ import (
 
 type Topic struct {
 	Name string
-	Key  []byte
+	Key  string
 	Data interface{}
 }
 
@@ -51,11 +51,11 @@ func (t *Topic) GetNameBytes() []byte {
 }
 
 func (t *Topic) GetKeyString() string {
-	return UnsafeString(t.Key)
+	return t.Key
 }
 
 func (t *Topic) GetKeyBytes() []byte {
-	return t.Key
+	return UnsafeBytes(t.Key)
 }
 
 func (t *Topic) GetDataBytes() []byte {
