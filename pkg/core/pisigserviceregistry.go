@@ -15,7 +15,8 @@ type PisigServiceRegistry struct {
 	mGroupList   []string
 	mServiceList []string
 
-	mDefaultServiceMap map[string]string
+	mDefaultServiceMap    map[string]string
+	mAllAvailableServices map[string][]string
 
 	mRWLock *sync.RWMutex
 }
@@ -34,6 +35,13 @@ func (psr *PisigServiceRegistry) GetDefaultServiceName(groupName string) (string
 	val, ok := psr.mDefaultServiceMap[groupName]
 
 	return val, ok
+}
+
+func (psr *PisigServiceRegistry) GetAllAvailableServices() map[string][]string {
+	psr.mRWLock.RLock()
+	defer psr.mRWLock.RUnlock()
+
+	return psr.mAllAvailableServices
 }
 
 func (psr *PisigServiceRegistry) GetTopicListenerList(topicName string) []interface{} {
@@ -144,6 +152,13 @@ func (psr *PisigServiceRegistry) AddService(pisigService PisigService) (bool, er
 		sort.Strings(psr.mGroupList)
 	}
 
+	// update all available services
+	if services, ok := psr.mAllAvailableServices[pisigService.GroupName()]; ok {
+		psr.mAllAvailableServices[pisigService.GroupName()] = append(services, pisigService.ServiceName())
+	} else {
+		psr.mAllAvailableServices[pisigService.GroupName()] = []string{pisigService.ServiceName()}
+	}
+
 	return true, nil
 }
 
@@ -187,9 +202,10 @@ func (psr *PisigServiceRegistry) GetService(groupName string, serviceName string
 
 func NewPisigServiceRegistry() *PisigServiceRegistry {
 	return &PisigServiceRegistry{
-		mStore:             make(map[string]InterfaceMap),
-		mTopicListener:     make(map[string][]interface{}),
-		mDefaultServiceMap: make(map[string]string),
-		mRWLock:            &sync.RWMutex{},
+		mStore:                make(map[string]InterfaceMap),
+		mTopicListener:        make(map[string][]interface{}),
+		mDefaultServiceMap:    make(map[string]string),
+		mAllAvailableServices: make(map[string][]string),
+		mRWLock:               &sync.RWMutex{},
 	}
 }
