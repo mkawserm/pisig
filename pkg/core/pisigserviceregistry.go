@@ -37,6 +37,13 @@ func (psr *PisigServiceRegistry) GetDefaultServiceName(groupName string) (string
 	return val, ok
 }
 
+func (psr *PisigServiceRegistry) GetDefaultServiceMap() map[string]string {
+	psr.mRWLock.RLock()
+	defer psr.mRWLock.RUnlock()
+
+	return psr.mDefaultServiceMap
+}
+
 func (psr *PisigServiceRegistry) GetAllAvailableServices() map[string][]string {
 	psr.mRWLock.RLock()
 	defer psr.mRWLock.RUnlock()
